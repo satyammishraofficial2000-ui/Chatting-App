@@ -4,6 +4,8 @@ const User = require('./../modules/user');
 
 const bcrypt = require('bcryptjs');
 
+const jwt =  require('jsonwebtoken');
+
 router.post('/signup',async(req, res) =>{
    try{
     //if user is alreaddy there
@@ -35,4 +37,41 @@ router.post('/signup',async(req, res) =>{
     });
    }
 })
+
+router.post('/login', async (req,res) => {
+    try{
+        //if user is alreaddy there
+        const user = await User.findOne({email: req.body.email});
+        if(!user){
+            return res.send({
+                message: 'User does not exists',
+                success: true
+            })
+        }
+        
+        //if passowrd is not correct
+        const isvalid = await bcrypt.compare(req.body.password,user.password);
+        if(!isvalid){
+            return res.send({
+                message: 'invalid password',
+                success: false
+            })
+        }
+        // if the user exists and passowrd is correct ,assign a jwt
+        const token = jwt.sign({userId: user._id}, process.env.SECRET_KEY, {expiresIn: "1d"});
+        res.send({
+            message: 'user logged-in successfuly',
+            success: true,
+            token: token
+        });
+
+
+    }catch(error){
+        res.send({
+            message : error.message,
+            success : false
+        })
+    }
+});
+
 module.exports = router;
