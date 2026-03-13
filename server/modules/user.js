@@ -14,12 +14,19 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type: String,
-        required:true
+        required:true,
+        select:false,
+        minlength: 8
     },
     profilepic:{
         type: String,
         required:false
-    },//its not compulsary
-},{timestamp: true})
+
+    },
+},
+    {
+     timestamps: true
+     }
+    )
 
 module.exports = mongoose.model('users', userSchema);
