@@ -58,7 +58,7 @@ router.post('/login', async (req,res) => {
             })
         }
         // if the user exists and passowrd is correct ,assign a jwt
-        const token = jwt.sign({userId: user._id}, process.env.SECRET_KEY, {expiresIn: "1d"});
+        const token = jwt.sign({userId: user._id}, process.env.SECRET_KEY, {expiresIn: "30d"});
         res.send({
             message: 'user logged-in successfuly',
             success: true,

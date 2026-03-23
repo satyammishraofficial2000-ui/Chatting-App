@@ -7,7 +7,7 @@ const messageScema = new mongoose.Schema({
     sender:{
         type:mongoose.Schema.Types.ObjectId,ref:"users"
     },
-    test:{
+    text:{
         type:String,
         require:true
     },
@@ -16,6 +16,6 @@ const messageScema = new mongoose.Schema({
         default:false
     }
 
-});
+},{timespams: true});
 
 module.exports = mongoose.model('message', messageScema);
