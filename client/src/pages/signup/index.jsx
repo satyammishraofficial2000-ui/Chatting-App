@@ -1,5 +1,7 @@
 import React from "react";
 import {Link} from 'react-router-dom';
+import { signupUser } from './../../apiCalls/auth';
+import {toast} from "react-hot-toast";
 
 function Signup(){
      const [user,setUser] = React.useState({
@@ -9,9 +11,19 @@ function Signup(){
      password:''
      });
 
-      function onFormSubmit(event){
+     async function onFormSubmit(event){
           event.preventDefault();
-          console.log(user);
+          let response = null;
+          try {
+            response = await signupUser(user);
+            if(response.success){
+                toast.success(response.message);
+            }else{
+                toast.error(response.message || "Something went wrong ❌");
+            }
+          } catch (error) {
+            toast.error(error.message);
+          }
 
      }
 

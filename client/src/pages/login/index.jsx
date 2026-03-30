@@ -1,5 +1,7 @@
 import React from "react";
 import {Link} from 'react-router-dom';
+import { loginUser } from "../../apiCalls/auth";
+import {toast} from "react-hot-toast";
 
 function Login(){
      const [user, setUser] = React.useState({
@@ -7,9 +9,23 @@ function Login(){
           password: ''
      });
 
-     function onFormSubmit(event){
+    async function onFormSubmit(event){
           event.preventDefault();
-          console.log(user);
+          let response = null;
+          try {
+             response = await loginUser(user);
+             console.log(response);
+            if(response.success){
+                toast.success(response.message);
+                localStorage.setItem('token',response.token);
+                window.location.href = "/";
+            }else{
+                toast.error(response.message);
+            }
+
+          } catch (error) {
+            toast.error(error.message);
+          }
      }
      return (
           <div className="container">
