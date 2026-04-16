@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLoggedUser } from './../apiCalls/users';
+import { useDispatch } from 'react-redux';
+import { hideLoader, showLoader } from '../redux/loaderSlice';
 
 function ProtectedRoute({ children }) {
+
+  const dsipatch = useDispatch();
 
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -10,7 +14,9 @@ function ProtectedRoute({ children }) {
   const getloggedInUser = async () => {
      let response = null;
     try {
+      dsipatch(showLoader());
        response = await getLoggedUser();
+       dsipatch(hideLoader());
       if (response.success) {
         setUser(response.data);
       } else {
@@ -18,6 +24,7 @@ function ProtectedRoute({ children }) {
       }
 
     } catch (error) {
+       dsipatch(hideLoader());
       navigate('/login');
     }
   };
@@ -28,8 +35,8 @@ function ProtectedRoute({ children }) {
     } else {
       navigate('/login');
     }
-  });
-
+  }, []);
+ 
 
   return ( 
     <div>
