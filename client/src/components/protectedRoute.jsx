@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLoggedUser } from './../apiCalls/users';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { hideLoader, showLoader } from '../redux/loaderSlice';
+import { setUser } from '../redux/usersSlice';
+import toast from 'react-hot-toast';
 
 function ProtectedRoute({ children }) {
-
+  
+  const { user } = useSelector(state => state.usersReducer);
   const dsipatch = useDispatch();
 
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const getloggedInUser = async () => {
@@ -18,14 +20,18 @@ function ProtectedRoute({ children }) {
        response = await getLoggedUser();
        dsipatch(hideLoader());
       if (response.success) {
-        setUser(response.data);
+        //setUser(response.data);
+        dsipatch(setUser(response.data));
+       
       } else {
-        navigate('/login');
+  
+        toast.error(response.message);
+        window.location.href = '/login';
       }
 
     } catch (error) {
        dsipatch(hideLoader());
-      navigate('/login');
+      //navigate('/login');
     }
   };
 
@@ -40,13 +46,10 @@ function ProtectedRoute({ children }) {
 
   return ( 
     <div>
-      <p>Name: { user?.firstname + ' ' + user?.lastname}</p>
-      <p>Email: { user?.email }</p>
-      <br /><br />
-       {children}
+        { children }
     </div>
     
-);
+ );
 }
 
 export default ProtectedRoute;
