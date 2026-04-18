@@ -264,6 +264,14 @@ i{
   overflow: hidden;
 }
 
+.selected-user{
+  border-bottom: #ccc 1px solid;
+  padding: 10px 10px;
+  color: white;
+  cursor: pointer;
+  background-color: #e74c3c;
+}
+
 .filter-user-display{
   display: flex;
   align-items: center;
@@ -306,4 +314,27 @@ i{
   border-radius: 3px;
   background-color: #e74c3c;
   color: white;
+}
+
+/*******************************************************
+*************CSS STYLES FOR CHAT AREA**************
+********************************************************/
+
+.app-chat-area{
+  background-color: white;
+  width: 70%;
+  padding: 20px 30px;
+  border-radius: 10px;
+}
+
+/*******************************************************
+*************CSS STYLES FOR CHAT AREA HEADER************
+********************************************************/
+.app-chat-area-header{
+    padding: 10px 30px;
+    margin-bottom: 20px;
+    border-bottom: #bbb 1px solid;
+    text-align: right;
+    font-weight: bold;
+    color: #e74c3c;
 }
