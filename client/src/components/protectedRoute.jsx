@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLoggedUser,getAllUsers } from './../apiCalls/users';
+import { getLoggedUser,getAllUsers, } from './../apiCalls/users';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideLoader, showLoader } from '../redux/loaderSlice';
-import { setUser,setAllUsers } from '../redux/usersSlice';
+import { setUser,setAllUsers, setAllChats} from '../redux/usersSlice';
+import { getAllChats } from "../apiCalls/chat";
 import toast from 'react-hot-toast';
 
 function ProtectedRoute({ children }) {
@@ -59,11 +60,25 @@ function ProtectedRoute({ children }) {
   };
 
 
+  const getCurrentUserChats = async () => {
+    try{
+      const response = await getAllChats();
+      if(response.success){
+        dispatch(setAllChats(response.data)); 
+      }
+    }catch(error){
+      console.log(error);
+      navigate('/login');
+    }
+  }
+
+
 
   useEffect(() => {
     if(localStorage.getItem('token')) {
       getloggedInUser();
       getAllUsersFromDb();
+      getCurrentUserChats();
     } else {
       navigate('/login');
     }
