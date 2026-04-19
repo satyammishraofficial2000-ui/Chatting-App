@@ -44,11 +44,13 @@ function UserList({ searchKey }) {
 
 
 const IsSelectedChat = (user) => {
-  if(selectedChat){
-     return selectedChat.members.map(m => m._id).includes(user._id);
+  if (selectedChat) {
+    return selectedChat.members
+      .map(m => (m._id ? m._id : m))
+      .includes(user._id);
   }
   return false;
-}
+};
  
   return (
     <>
@@ -64,7 +66,7 @@ const IsSelectedChat = (user) => {
         .map((user) => {
           return (
             <div className="user-search-filter" key={user._id}>
-              <div className={ IsSelectedChat(user) ? "selected-user" : "filtred-user"}>
+              <div className={ IsSelectedChat(user) ? "selected-user" : "filtered-user"}>
                 <div className="filter-user-display">
 
                   {user.profilePic && (
@@ -76,7 +78,7 @@ const IsSelectedChat = (user) => {
                   )}
 
                   {!user.profilePic && (
-                    <div className="user-default-profile-pic">
+                    <div className={"user-default-avatar"}>
                       {
                         user.firstname.charAt(0).toUpperCase() +
                         user.lastname.charAt(0).toUpperCase()
