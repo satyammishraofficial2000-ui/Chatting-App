@@ -66,7 +66,7 @@ const IsSelectedChat = (user) => {
         .map((user) => {
           return (
             <div className="user-search-filter" key={user._id}>
-              <div className={ IsSelectedChat(user) ? "selected-user" : "filtered-user"}>
+              <div className={IsSelectedChat(user) ? "selected-user" : "filtered-user"} onClick={() => openChat(user._id)}>
                 <div className="filter-user-display">
 
                   {user.profilePic && (
@@ -86,7 +86,7 @@ const IsSelectedChat = (user) => {
                     </div>
                   )}
 
-                  <div className="filter-user-details" onClick={ () => openChat(user._id)} key={user._id} >
+                  <div className="filter-user-details">
                     <div className="user-display-name">
                       {user.firstname + " " + user.lastname}
                     </div>

@@ -4,6 +4,7 @@ import { hideLoader, showLoader } from "../../../redux/loaderSlice";
 import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
 import { useState } from "react";
 import { useEffect } from "react";
+import moment from "moment";
 
 
 
@@ -52,6 +53,21 @@ function ChatArea(){
     }
   };
 
+const formateTime = (timestamp) => {
+  if (!timestamp) return "";
+
+  const messageTime = moment(timestamp);
+
+  if (messageTime.isSame(moment(), "day")) {
+    return `Today ${messageTime.format("hh:mm A")}`;
+  }
+
+  if (messageTime.isSame(moment().subtract(1, "day"), "day")) {
+    return `Yesterday ${messageTime.format("hh:mm A")}`;
+  }
+
+  return messageTime.format("MMM Do YYYY, hh:mm A");
+};
 const getMessages = async () => {
   try{
 
@@ -83,9 +99,26 @@ useEffect(() => {
         {selectedUser ? selectedUser.firstname + " " + selectedUser.lastname : ""}
       </div>
 
-      <div className="main-chat-area">
-        CHAT AREA
-      </div>
+     
+<div className="main-chat-area">
+  {allMessages.map((msg, index) => {
+     console.log(msg);
+    const isCurrentUserSender = msg.sender === user._id;
+
+    return (
+      <div
+            key={index}
+            className="message-container"
+            style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
+            <div>
+              <div className={isCurrentUserSender ? "send-message" : "received-message"}> {msg.text} </div>
+              <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>{formateTime(msg.createdAt)}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+      
 
       <div className="send-message-div">
         <input
