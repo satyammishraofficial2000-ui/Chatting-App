@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import moment from "moment";
 import {clearUnreadMessages} from "../../../apiCalls/chat";
+import { setAllChats } from "../../../redux/usersSlice";
 
 
 
@@ -94,12 +95,15 @@ const clearUnreadMessage  = async () => {
     dispatch(hideLoader());
 
     if(response.success){
-      allChats.map(chat => {
+
+      const updatedChats = allChats.map(chat => {
         if(chat._id === selectedChat._id){
-         return response.data;
+          return { ...chat, unreadMessageCount: 0 };
         }
         return chat;
-      })
+      });
+
+      dispatch(setAllChats(updatedChats));
     }
 
   }catch(error){
@@ -113,6 +117,9 @@ function formatName(user) {
   let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
   return fname + " " + lname;
 }
+
+
+
 
 useEffect(() => {
   if(selectedChat){
@@ -133,7 +140,7 @@ useEffect(() => {
      
 <div className="main-chat-area">
   {allMessages.map((msg, index) => {
-     console.log(msg);
+    
     const isCurrentUserSender = msg.sender === user._id;
 
     return (

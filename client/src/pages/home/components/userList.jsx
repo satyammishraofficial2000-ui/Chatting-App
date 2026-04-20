@@ -88,6 +88,24 @@ function formatName(user) {
   let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
   return fname + " " + lname;
 }
+
+const getUnreadMessageCount = (userId) => {
+  const chat = allChats.find(chat =>
+    (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(userId)
+  );
+
+  const senderId = chat?.lastMessage?.sender?._id || chat?.lastMessage?.sender;
+
+  if (
+    chat &&
+    chat.unreadMessageCount &&
+    senderId?.toString() !== currentUser._id?.toString()
+  ) {
+    return <div className="unread-message-counter"> {chat.unreadMessageCount} </div>;
+  } else {
+    return "";
+  }
+};
  
   return (
     <>
@@ -127,7 +145,10 @@ function formatName(user) {
                     <div className="user-display-name"> {user.firstname + " " + user.lastname} </div>
                     <div className="user-display-email"> { getlastMessage(user._id) || user.email}</div>
                   </div>
-                  <div className="last-message-timestamp">{getLastMessageTimestamp(user._id)}</div>
+                  <div>
+                    {getUnreadMessageCount(user._id)}
+                    <div className="last-message-timestamp">{getLastMessageTimestamp(user._id)}</div>
+                  </div>
 
                   { !allChats.find(chat => (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(user._id)) &&
                 
