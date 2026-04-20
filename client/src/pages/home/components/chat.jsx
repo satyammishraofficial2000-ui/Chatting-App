@@ -5,13 +5,14 @@ import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
 import { useState } from "react";
 import { useEffect } from "react";
 import moment from "moment";
+import {clearUnreadMessages} from "../../../apiCalls/chat";
 
 
 
 function ChatArea(){
 
   const dispatch = useDispatch();
-  const { selectedChat, user, allusers } = useSelector((state) => state.usersReducer);
+  const { selectedChat, user, allusers,allChats } = useSelector((state) => state.usersReducer);
   const [message, setMessage] = useState("");
   const [allMessages, setAllMessages] = useState([]);
 
@@ -85,6 +86,28 @@ const getMessages = async () => {
   }
 };
 
+const clearUnreadMessage  = async () => {
+  try{
+
+    dispatch(showLoader());
+    const response = await clearUnreadMessages(selectedChat._id);
+    dispatch(hideLoader());
+
+    if(response.success){
+      allChats.map(chat => {
+        if(chat._id === selectedChat._id){
+         return response.data;
+        }
+        return chat;
+      })
+    }
+
+  }catch(error){
+    dispatch(hideLoader());
+    toast.error(error.message);
+  }
+}
+
 function formatName(user) {
   let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
   let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
@@ -94,6 +117,7 @@ function formatName(user) {
 useEffect(() => {
   if(selectedChat){
     getMessages();
+    clearUnreadMessage();
   }
 }, [selectedChat]);
 

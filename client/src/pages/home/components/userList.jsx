@@ -34,29 +34,28 @@ function UserList({ searchKey }) {
     }
    }
 
-   const openChat = (selectedUserId) => {
-    const chat = allChats.find(chat =>
-       chat.members.map(m => (m._id ? m._id : m)).includes(currentUser._id) && 
-       chat.members.map(m => (m._id ? m._id : m)).includes(selectedUserId )
-      );
-    if (chat) {
-      dispatch(setSelectedChat(chat));
-    }
-  };
+  const openChat = (selectedUserId) => {
+  const chat = allChats.find(chat =>
+    (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(currentUser._id) &&
+    (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(selectedUserId)
+  );
+
+  if (chat) {
+    dispatch(setSelectedChat(chat));
+  }
+};
 
 
 const IsSelectedChat = (user) => {
   if (selectedChat) {
-    return selectedChat.members
-      .map(m => (m._id ? m._id : m))
-      .includes(user._id);
+    return (selectedChat?.members?.map(m => (m._id ? m._id : m)) || []).includes(user._id);
   }
   return false;
 };
 
 const getLastMessageTimestamp = (userId) => {
   const chat = allChats.find(chat =>
-    chat.members.map(m => (m._id ? m._id : m)).includes(userId)
+    (chat?.members?.map(m => (m._id ? m._id : m)) || [])
   );
 
   if (!chat || !chat.lastMessage) {
@@ -68,7 +67,7 @@ const getLastMessageTimestamp = (userId) => {
 
 const getlastMessage = (userId) => {
   const chat = allChats.find(chat =>
-    chat.members.map(m => (m._id ? m._id : m)).includes(userId)
+    (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(userId)
   );
 
   if (!chat || !chat.lastMessage) {
@@ -99,7 +98,7 @@ function formatName(user) {
             user.firstname.toLowerCase().includes(searchKey.toLowerCase()) ||
             user.lastname.toLowerCase().includes(searchKey.toLowerCase())) && 
             searchKey
-          ) || (allChats.find(chat => chat.members.map(m => (m._id ? m._id : m)).includes(user._id)))
+          ) || (allChats.find(chat => (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(user._id)))
         }) 
         .map((user) => {
           return (
@@ -130,7 +129,7 @@ function formatName(user) {
                   </div>
                   <div className="last-message-timestamp">{getLastMessageTimestamp(user._id)}</div>
 
-                  { !allChats.find(chat => chat.members.map(m => (m._id ? m._id : m)).includes(user._id)) &&
+                  { !allChats.find(chat => (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(user._id)) &&
                 
                     <div className="user-start-chat">
                       <button className="user-start-chat-btn" onClick={() => startNewChat(user._id)}>
