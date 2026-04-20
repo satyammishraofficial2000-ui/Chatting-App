@@ -481,9 +481,11 @@ i{
 }
 
 .message-timestamp{
-  font-size: 12px;
-  color: rgb(17, 16, 16);
-  margin-top: 3px;
+ width: fit-content;
+ font-size: 13px;
+}
+.last-message-timestamp{
+  font-size: 13px;
 }
 /*****************************************************
 ************MEDIA QUERY FOR USER LIST*****************

@@ -7,11 +7,11 @@ const chatSchema = new mongoose.Schema({
         ]
     },
     lastMessage: {
-        type: mongoose.Schema.Types.ObjectId, ref: "mongoose"
+        type: mongoose.Schema.Types.ObjectId, ref: "message"
     },
-    unreadMessageCounnt:{
+    unreadMessageCount:{
         type: Number,
         default: 0
     }
-},{timespamp:true});
+},{timestamps:true});
 module.exports = mongoose.model("chats", chatSchema);

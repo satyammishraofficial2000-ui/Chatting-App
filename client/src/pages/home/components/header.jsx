@@ -6,8 +6,8 @@ function Header(){
 
     function getFullName() {
     if(!user) return "";
-    let fname = user.firstname.toLowerCase();
-    let lname = user.lastname.toLowerCase();
+    let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
+    let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
     return fname + " " + lname;
 }
 
