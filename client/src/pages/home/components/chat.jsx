@@ -150,7 +150,11 @@ useEffect(() => {
             style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
             <div>
               <div className={isCurrentUserSender ? "send-message" : "received-message"}> {msg.text} </div>
-              <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>{formateTime(msg.createdAt)}</div>
+              <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>
+                {formateTime(msg.createdAt)} {isCurrentUserSender && msg.read &&  
+                <i className="fa fa-check-circle" aria-hidden="true" style={{ color: "#e7c3c" }}></i>
+                }
+              </div>
             </div>
           </div>
         );

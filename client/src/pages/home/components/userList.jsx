@@ -6,6 +6,7 @@ import { hideLoader } from "../../../redux/loaderSlice";
 import { showLoader } from "../../../redux/loaderSlice";
 import { setAllChats, setSelectedChat } from "../../../redux/usersSlice";
 import moment from "moment";
+import { all } from "axios";
 
 function UserList({ searchKey }) {
 
@@ -55,7 +56,7 @@ const IsSelectedChat = (user) => {
 
 const getLastMessageTimestamp = (userId) => {
   const chat = allChats.find(chat =>
-    (chat?.members?.map(m => (m._id ? m._id : m)) || [])
+    (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(userId)
   );
 
   if (!chat || !chat.lastMessage) {
@@ -106,19 +107,28 @@ const getUnreadMessageCount = (userId) => {
     return "";
   }
 };
+
+function getData() {
+  if (searchKey === "") {
+    return allChats;
+  } else {
+    return allusers.filter(user =>
+      (user.firstname && user.firstname.toLowerCase().includes(searchKey.toLowerCase())) ||
+      (user.lastname && user.lastname.toLowerCase().includes(searchKey.toLowerCase()))
+    );
+  }
+};
+
  
   return (
     <>
-      {allusers
-        .filter(user => {
-          return (
-            (
-            user.firstname.toLowerCase().includes(searchKey.toLowerCase()) ||
-            user.lastname.toLowerCase().includes(searchKey.toLowerCase())) && 
-            searchKey
-          ) || (allChats.find(chat => (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(user._id)))
-        }) 
-        .map((user) => {
+      {getData()
+        .map((obj) => {
+          let user = obj;
+          if(obj.members){
+            user = obj.members.find(mem => (mem._id ? mem._id : mem) !== currentUser._id);
+          }
+
           return (
             <div className="user-search-filter" key={user._id}>
               <div className={IsSelectedChat(user) ? "selected-user" : "filtered-user"} onClick={() => openChat(user._id)}>
