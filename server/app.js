@@ -22,6 +22,8 @@ app.use('/api/user', userRouter);
 app.use('/api/chat',chatRouter);
 app.use('/api/message', messageRouter);
 
+const onlineUsers =[];
+
 //test socket connection from client
 io.on('connection', (socket) => {
    socket.on('join-room',userid => {
@@ -30,16 +32,31 @@ io.on('connection', (socket) => {
    });
    socket.on('send-message', (message) => {
      console.log(message);
-     io
+     socket.broadcast
      .to(message.members[0])
      .to(message.members[1])
      .emit('receive-message', message);
      });
+
      socket.on('clear-unread-messages', data => {
           io.to(data.members[0])
           .to(data.members[1])
           .emit('unread-messages-cleared', data);
      });
+     socket.on('user-typing', (data) => {
+          io.to(data.members[0])
+          .to(data.members[1])
+          .emit('started-typing', data);
+     })
+
+    socket.on('user-login', (userId) => {
+
+               if (!onlineUsers.includes(userId)) {
+                    onlineUsers.push(userId);
+               }
+
+               io.emit('online-users', onlineUsers);
+          });
 });  
 
 module.exports = server;
