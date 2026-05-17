@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-function Header(){
+function Header({socket}) {
     const { user } = useSelector(state => state.usersReducer);
     const navigate = useNavigate();
 
@@ -19,6 +19,15 @@ function getInitials(){
     return f + l;
 }
 
+const logout = () => {
+
+     socket.emit('user-offline', user._id);
+    localStorage.removeItem("token");
+    socket.disconnect();
+    navigate('/login');
+   
+}
+
     return(
         <div className="app-header">
             <div className="app-logo">
@@ -27,11 +36,15 @@ function getInitials(){
             </div>
 
             <div className="app-user-profile">
-                <div className="logged-user-name">{getFullName()}</div>
-                {user?.profilePic && <img src={user?.profilePic} alt="profile-pic" className='logged-user-profile-pic' />}
+                {user?.profilePic && <img src={user?.profilePic} alt="profile-pic" className='logged-user-profile-pic' onClick={() => navigate('/profile')}/>}
                 {!user?.profilePic && <div className="logged-user-profile-pic" onClick={() => navigate('/profile')}>
                     {getInitials()}
                 </div>}
+                <div className="logged-user-name">{getFullName()}</div>
+                <button  className = "logout-button" onClick={logout}>
+                    <i className="fa fa-power-off"></i>
+                </button>
+                
             </div>
         </div>
     );

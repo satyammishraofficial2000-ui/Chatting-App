@@ -7,6 +7,7 @@ const authRouter = require('./controllers/authController');
 const userRouter = require('./controllers/userController');
 const chatRouter = require('./controllers/chatController');
 const messageRouter = require('./controllers/messageController');
+const user = require('./modules/user');
 
 app.use(express.json({
      limit: '50mb'
@@ -59,6 +60,18 @@ io.on('connection', (socket) => {
 
                io.emit('online-users', onlineUsers);
           });
+          
+     socket.on('user-offline', (userId) => {
+
+          const index = onlineUsers.indexOf(userId);
+
+          if(index > -1){
+               onlineUsers.splice(index, 1);
+          }
+
+          io.emit('online-users', onlineUsers);
+     });
+
 });  
 
 module.exports = server;

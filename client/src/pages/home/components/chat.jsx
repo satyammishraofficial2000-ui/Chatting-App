@@ -40,12 +40,13 @@ function ChatArea({ socket }) {
 
 
 
-  const sendMessage = async () => {
+  const sendMessage = async (image) => {
     try{
       const newMessage = {
         chatId: selectedChat._id,
         sender: user._id,
-        text: message
+        text: message,
+        image: image
       };
 
        
@@ -148,6 +149,16 @@ function formatName(user) {
   return fname + " " + lname;
 }
 
+function sendImage(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader(file);
+  reader.readAsDataURL(file);
+  reader.onload = async () => {
+    sendMessage(reader.result);
+
+  }
+}
+
 
 
 
@@ -158,7 +169,7 @@ useEffect(() => {
     clearUnreadMessage();
   }
 
-  socket.on("receive-message", (message) => {
+  socket.off('receive-message').on("receive-message", (message) => {
     const selectedChat = store.getState().usersReducer.selectedChat;
     if(message.chatId === selectedChat._id){
       setAllMessages((prevmsg) => [...prevmsg, message]);
@@ -190,12 +201,15 @@ socket.on('message-count-cleared', data => {
 })
 
 //show some typing indicator in chat area
-socket.on('started-typing', (data) => {
+socket.off('started-typing').on('started-typing', (data) => {
+
   if(data.chatId === selectedChat._id && data.senderId !== user._id){
+
     setIsTyping(true);
+
     setTimeout(() => {
       setIsTyping(false);
-    }, 2000);
+    }, 1200);
   }
 });
   return () => {
@@ -204,7 +218,7 @@ socket.on('started-typing', (data) => {
   socket.removeAllListeners("unread-messages-cleared");
 };
   };
-}, [selectedChat,isTyping]);
+}, [selectedChat]);
 
 useEffect(() => {
   const msgContainer = document.getElementById('main-chat-area');
@@ -232,7 +246,12 @@ useEffect(() => {
             className="message-container"
             style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
             <div>
-              <div className={isCurrentUserSender ? "send-message" : "received-message"}> {msg.text} </div>
+              <div className={isCurrentUserSender ? "send-message" : "received-message"}> 
+                <div>{msg.text} </div>
+                <div>
+                  {msg.image && <img src={msg.image} alt="image" height="120" width="120" />}
+                </div>
+                </div>
               <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>
                 {formateTime(msg.createdAt)} {isCurrentUserSender && msg.read &&  
                 <i className="fa fa-check-circle" aria-hidden="true" style={{ color: "#e7c3c" }}></i>
@@ -271,6 +290,16 @@ useEffect(() => {
           }
         }
         />
+        <label for="file">
+          <i className="fa fa-picture-o send-image-btn"></i>
+          <input 
+            type="file"
+            id="file"
+            style={{display:'none'}}
+            accept="image/jpg,image/png,image/jpeg,image/gif"
+            onChange={sendImage}
+          />
+        </label>
         <button
           className="fa fa-smile-o send-emoji-btn"
           aria-hidden="true"
@@ -280,7 +309,7 @@ useEffect(() => {
         <button
           className="fa fa-paper-plane send-message-btn"
           aria-hidden="true"
-          onClick={sendMessage}
+          onClick={() => sendMessage()}
         ></button>
       </div>
 

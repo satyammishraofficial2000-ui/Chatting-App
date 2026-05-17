@@ -94,10 +94,10 @@ function formatName(user) {
 
 useEffect(() => {
   socket.on('receive-message', (message) => {
-    const selectedChat = store.getState().usersReducer.selectedChat;
+    const currentSelectedChat = store.getState().usersReducer.selectedChat;
     let allChats = store.getState().usersReducer.allChats;
 
-    if(selectedChat?._id !== message.chatId){
+    if(!currentSelectedChat || currentSelectedChat._id !== message.chatId){
       const updatedChats = allChats.map(chat => {
         if(chat._id === message.chatId){
           return { 
@@ -170,13 +170,13 @@ function getData() {
                       src={user.profilePic}
                       alt="Profile Pic"
                       className="user-profile-image"
-                      style={onlineUsers?.includes(user._id) ? {border: '#03f26b 3px solid'} : {}}
+                      style={onlineUsers?.some(onlineUser => onlineUser.userId === user._id || onlineUser === user._id)? {border: '#03f26b 3px solid'} : {}}
                     />
                   )}
 
                   {!user.profilePic && (
                     <div className={"user-default-avatar"}
-                    style={onlineUsers?.includes(user._id) ? {border: 'green 3px solid'} : {}}
+                    style={onlineUsers?.some(onlineUser => onlineUser.userId === user._id || onlineUser === user._id)? {border: 'green 3px solid'} : {}}
                     >
                       {
                         user.firstname.charAt(0).toUpperCase() +
