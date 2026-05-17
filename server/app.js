@@ -1,7 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-app.use(cors());
+app.use(cors({
+   origin: "https://chatting-app-client-x539.onrender.com",
+   credentials: true
+}))
 
 const authRouter = require('./controllers/authController');
 const userRouter = require('./controllers/userController');
@@ -15,7 +18,7 @@ app.use(express.json({
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
      cors: {
-          origin: 'http://localhost:5173',
+          origin: 'https://chatting-app-client-x539.onrender.com',
           methods: ['GET', 'POST']
      }
 });
