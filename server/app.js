@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 app.use(cors({
-   origin: "https://chatting-pmtsid2ay-satyam-mishras-projects-a4cffc01.vercel.app",
+   origin: "https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app",
    credentials: true
 }))
 
@@ -18,7 +18,7 @@ app.use(express.json({
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
      cors: {
-          origin: 'https://chatting-pmtsid2ay-satyam-mishras-projects-a4cffc01.vercel.app',
+          origin: 'https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app',
           methods: ['GET', 'POST']
      }
 });
