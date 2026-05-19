@@ -23,3 +23,22 @@ export const getAllMessages = async (chatId) => {
     return error;
   }
 };
+
+// New API call for translating message
+export const translateMessage = async (text, targetLanguage) => {
+  try {
+
+    const response = await axiosInstance.post(url +
+      "/api/message/translate-message",
+      {
+        text,
+        targetLanguage
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+    return error;
+  }
+};

@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
     },
+    preferredLanguage: {
+    type: String,
+    default: "en"
+    },
     },
     {
      timestamps: true

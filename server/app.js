@@ -2,7 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 app.use(cors({
-   origin: "https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app",
+   origin:[
+               "https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app",
+               "http://localhost:3000",
+               "http://localhost:3001",
+               "http://192.168.1.51:3001"
+               ],
    credentials: true
 }))
 
@@ -11,6 +16,7 @@ const userRouter = require('./controllers/userController');
 const chatRouter = require('./controllers/chatController');
 const messageRouter = require('./controllers/messageController');
 const user = require('./modules/user');
+const startScheduledMessagesCron = require('./cron/scheduledMessages');
 
 app.use(express.json({
      limit: '50mb'
@@ -18,7 +24,12 @@ app.use(express.json({
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
      cors: {
-          origin: 'https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app',
+          origin:[
+                    "https://chatting-app-git-main-satyam-mishras-projects-a4cffc01.vercel.app",
+                    "http://localhost:3000",
+                    "http://localhost:3001",
+                    "http://192.168.1.51:3001"
+                    ],
           methods: ['GET', 'POST']
      }
 });
@@ -74,7 +85,10 @@ io.on('connection', (socket) => {
 
           io.emit('online-users', onlineUsers);
      });
+     
 
 });  
+
+startScheduledMessagesCron(io);
 
 module.exports = server;

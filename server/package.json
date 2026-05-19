@@ -10,13 +10,17 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@google/genai": "^2.4.0",
+    "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "google-translate-api-x": "^10.7.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.4",
+    "node-cron": "^4.2.1",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

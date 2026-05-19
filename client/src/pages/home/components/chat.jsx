@@ -9,8 +9,12 @@ import {clearUnreadMessages} from "../../../apiCalls/chat";
 import { setAllChats } from "../../../redux/usersSlice";
 import store from "./../../../redux/store";
 import EmojiPicker from "emoji-picker-react";
+import { FaMicrophone } from "react-icons/fa";
 
 
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function ChatArea({ socket }) {
 
@@ -31,40 +35,102 @@ function ChatArea({ socket }) {
   );
   const  [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const recognition = new SpeechRecognition();
+  const [isListening, setIsListening] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
 
+  const isChrome = /Chrome/.test(navigator.userAgent);
+
+    if(!isChrome){
+      toast.error("Voice input works best in Google Chrome");
+    }
+
+  recognition.continuous = false;
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    setMessage(transcript);
+  };
+
+  recognition.onstart = () => {
+  setIsListening(true);
+};
+
+recognition.onend = () => {
+  setIsListening(false);
+};
+
+recognition.onerror = (event) => {
+   console.log(event);
+  setIsListening(false);
+};
 
 
 
   const sendMessage = async (image) => {
     try{
+      
+      let scheduleDateTime = null;
+
+      if(scheduledDate && scheduledTime){
+        scheduleDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+      }
+
       const newMessage = {
         chatId: selectedChat._id,
         sender: user._id,
         text: message,
-        image: image
+        image: image,
+        language: user.preferredLanguage || "en",
+
+        isScheduled: scheduleDateTime ? true : false,
+        scheduledFor: scheduleDateTime,
+        isDelivered: scheduleDateTime ? false : true,
       };
 
-       
-      socket.emit('send-message',{
-        ...newMessage,
-       members: selectedChat.members.map(m => m._id ? m._id : m),
-        read: false,
-        createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
-      })
+       // Emit the message to socket server only if it's not a scheduled message
+          if(scheduleDateTime){
+
+            setAllMessages(prev => [...prev, {
+              ...newMessage,
+              read: false,
+              createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
+            }]);
+
+          }
 
       //dispatch(showLoader());
       const response = await createNewMessage(newMessage);
       //dispatch(hideLoader());
+      if(response.success && !scheduleDateTime){
+
+          socket.emit('send-message',{
+            ...response.data,
+            members: selectedChat.members.map(m => m._id ? m._id : m),
+          });
+
+       }
 
      if(response.success){
       setMessage("");
+      setScheduledDate("");
+      setScheduledTime("");
+      setShowScheduleModal(false);
       setShowEmojiPicker(false);
 
-     setAllMessages(prev => [...prev, {
-        ...newMessage,
-        read: false,
-        createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
-      }]);
+     if(!scheduleDateTime){
+
+        setAllMessages(prev => [...prev, {
+          ...newMessage,
+          read: false,
+          createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
+        }]);
+
+      }
 
        /* toast.success(response.message);
         setMessage("");*/
@@ -164,15 +230,33 @@ useEffect(() => {
     clearUnreadMessage();
   }
 
-  socket.off('receive-message').on("receive-message", (message) => {
-    const selectedChat = store.getState().usersReducer.selectedChat;
-    if(message.chatId === selectedChat._id){
-      setAllMessages((prevmsg) => [...prevmsg, message]);
-    }
-    if(selectedChat._id === message.chatId && message.sender !== user._id){
-      clearUnreadMessage();
-    }
-  })
+  socket.off('receive-message').on("receive-message", async (message) => {
+
+  const selectedChat = store.getState().usersReducer.selectedChat;
+
+  if(message.chatId === selectedChat._id){
+
+    setAllMessages((prevmsg) => {
+
+            const filteredMessages = prevmsg.filter(
+              msg =>
+                !(
+                  msg.isScheduled &&
+                  !msg.isDelivered &&
+                  msg.text === message.text &&
+                  msg.sender === message.sender
+                )
+            );
+
+            return [...filteredMessages, message];
+          });
+
+  }
+
+  if(selectedChat._id === message.chatId && message.sender !== user._id){
+    clearUnreadMessage();
+  }
+})
 
 socket.on('message-count-cleared', data => {
 
@@ -207,18 +291,18 @@ socket.off('started-typing').on('started-typing', (data) => {
     }, 1200);
   }
 });
-  return () => {
     return () => {
-  socket.removeAllListeners("receive-message");
-  socket.removeAllListeners("unread-messages-cleared");
-};
-  };
+      socket.removeAllListeners("receive-message");
+      socket.removeAllListeners("unread-messages-cleared");
+    };
 }, [selectedChat]);
 
 useEffect(() => {
   const msgContainer = document.getElementById('main-chat-area');
   msgContainer.scrollTop = msgContainer.scrollHeight;
 },[allMessages]);
+
+
 
 // Prevent crash when page loads
   if (!selectedChat) {
@@ -246,13 +330,26 @@ useEffect(() => {
             style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
             <div>
               <div className={isCurrentUserSender ? "send-message" : "received-message"}> 
-                <div>{msg.text} </div>
+                <div>
+                  {
+                   msg.sender === user._id ||
+                    msg.language === user.preferredLanguage
+                      ? msg.text
+                      : msg.translatedText || msg.text
+                  }
+                </div>
+                
+                {msg.isScheduled && !msg.isDelivered && (
+                  <div className="scheduled-message-label">
+                    ⏰ Scheduled • {formateTime(msg.scheduledFor)}
+                  </div>
+                )}
                 <div>
                   {msg.image && <img src={msg.image} alt="image" height="120" width="120" />}
                 </div>
                 </div>
               <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>
-                {formateTime(msg.createdAt)} {isCurrentUserSender && msg.read &&  
+                {formateTime(msg.deliveredAt || msg.createdAt)} {isCurrentUserSender && msg.read &&  
                 <i className="fa fa-check-circle" aria-hidden="true" style={{ color: "#e7c3c" }}></i>
                 }
               </div>
@@ -289,7 +386,7 @@ useEffect(() => {
           }
         }
         />
-        <label for="file">
+        <label htmlFor="file">
           <i className="fa fa-picture-o send-image-btn"></i>
           <input 
             type="file"
@@ -299,11 +396,27 @@ useEffect(() => {
             onChange={sendImage}
           />
         </label>
+
+        <button
+          className="fa fa-clock-o send-schedule-btn"
+          aria-hidden="true"
+          onClick={() => setShowScheduleModal(true)}
+        ></button>
+
         <button
           className="fa fa-smile-o send-emoji-btn"
           aria-hidden="true"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
         ></button>
+
+        <button className="send-mic-btn"  onClick={() => {
+                            if(!isListening){
+                              recognition.start();
+                            }
+                          }}
+            >
+          <FaMicrophone />
+        </button>
 
         <button
           className="fa fa-paper-plane send-message-btn"
@@ -311,6 +424,44 @@ useEffect(() => {
           onClick={() => sendMessage()}
         ></button>
       </div>
+
+      {showScheduleModal && (
+      <div className="schedule-modal-overlay">
+        <div className="schedule-modal">
+
+          <h3>Schedule Message</h3>
+
+          <input
+            type="date"
+            value={scheduledDate}
+            onChange={(e) => setScheduledDate(e.target.value)}
+          />
+
+          <input
+            type="time"
+            value={scheduledTime}
+            onChange={(e) => setScheduledTime(e.target.value)}
+          />
+
+          <div className="schedule-modal-buttons">
+
+            <button onClick={() => setShowScheduleModal(false)}>
+              Cancel
+            </button>
+
+            <button
+              onClick={() => {
+                console.log("Scheduled:", scheduledDate, scheduledTime);
+                setShowScheduleModal(false);
+              }}
+            >
+              Schedule
+            </button>
+
+          </div>
+        </div>
+      </div>
+    )}
 
     </div>
   );

@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { uploadProfilePic } from '../../apiCalls/users';
+import { uploadProfilePic, updatePreferredLanguage } from '../../apiCalls/users';
 import { hideLoader, showLoader } from '../../redux/loaderSlice';
 import { setUser } from '../../redux/usersSlice';
 import { toast } from 'react-hot-toast';
@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 function Profile(){
     const { user } = useSelector(state => state.usersReducer);
     const [image, setImage] = useState(null);
+    const [preferredLanguage, setPreferredLanguage] = useState(user?.preferredLanguage || "en");
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -17,6 +18,12 @@ function Profile(){
             setImage(user.profilePic);
         }
     }, [user?.profilePic]);
+
+    useEffect(() => {
+    if(user?.preferredLanguage){
+        setPreferredLanguage(user.preferredLanguage);
+    }
+}, [user]);
 
     function getInitials(){
         if(!user) return "";
@@ -60,6 +67,27 @@ function Profile(){
         }
 }
 
+const onLanguageChange = async (e) => {
+
+    const value = e.target.value;
+
+    setPreferredLanguage(value);
+
+    const response = await updatePreferredLanguage(value);
+
+    if(response.success){
+
+        dispatch(setUser(response.data));
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(response.data)
+        );
+
+        toast.success(response.message);
+    }
+};
+
 
    return (
     <div className="profile-page-container">
@@ -86,6 +114,15 @@ function Profile(){
             <div className="select-profile-pic-container">
                 <input type="file" onChange={onFileSelected} />
                 <button className='upload-image-btn' onClick={updateProfilePic}>Update Profile Picture</button>
+                <select
+                    value={preferredLanguage}
+                    onChange={onLanguageChange}
+                    >
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="ta">தமிழ்</option>
+                    </select>
             </div>
         </div>
     </div>

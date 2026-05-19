@@ -15,9 +15,36 @@ const messageScema = new mongoose.Schema({
         type:String,
         required: false
     },
+    language: {
+    type: String,
+    default: "en"
+    },
+    translatedText:{
+    type:String,
+    default:""
+    },
     read:{
         type:Boolean,
         default:false
+    },
+
+    isScheduled:{
+        type:Boolean,
+        default:false
+    },
+
+    scheduledFor:{
+        type:Date,
+        default:null
+    },
+
+    isDelivered:{
+        type:Boolean,
+        default:true
+    },
+    deliveredAt:{
+    type: Date,
+    default: null
     }
 
 },{timestamps: true});

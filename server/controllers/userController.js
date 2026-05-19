@@ -80,5 +80,31 @@ router.post('/upload-profile-pic', authMiddleware, async (req,res) => {
     }
 });
 
+router.post('/update-preferred-language', authMiddleware, async (req,res) => {
+    try{
+
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            {
+                preferredLanguage: req.body.preferredLanguage
+            },
+            { returnDocument: 'after' }
+        );
+
+        res.send({
+            message: 'Preferred language updated successfully',
+            success: true,
+            data: user
+        });
+
+    }catch(error){
+
+        res.status(400).send({
+            message: error.message,
+            success: false
+        });
+    }
+});
+
 
 module.exports = router;

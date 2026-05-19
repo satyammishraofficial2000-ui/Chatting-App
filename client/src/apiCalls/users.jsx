@@ -25,3 +25,18 @@ export const uploadProfilePic = async (image) => {
         return error;
     }
 }
+
+export const updatePreferredLanguage = async (preferredLanguage) => {
+    try {
+
+        const response = await axiosInstance.post(
+            '/api/user/update-preferred-language',
+            { preferredLanguage }
+        );
+
+        return response.data;
+
+    } catch (error) {
+        return error;
+    }
+};

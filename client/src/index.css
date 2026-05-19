@@ -418,7 +418,7 @@ i{
 /* Emoji Button */
 .send-emoji-btn{
     position: absolute;
-    right: 50px;
+    right: 80px;
     top: 5px;
 
     font-size: 22px;
@@ -431,9 +431,34 @@ i{
 
 .send-image-btn{
     position: absolute;
-    right: 80px;
+    right: 105px;
     top: 5px;
     font-size: 22px;
+    color: #e74c3c;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    margin-top: 5px;
+}
+
+.send-schedule-btn{
+    position: absolute;
+    right: 150px;
+    top: 5px;
+
+    font-size: 20px;
+    color: #e74c3c;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    margin-top: 5px;
+}
+
+.send-mic-btn{
+    position: absolute;
+    right: 45px;
+    top: 5px;
+    font-size: 20px;
     color: #e74c3c;
     cursor: pointer;
     border: none;
@@ -519,12 +544,77 @@ i{
   border-top-left-radius: 16px;
 }
 
+.scheduled-message-label{
+    font-size: 11px;
+    margin-top: 5px;
+    color: #666;
+    font-style: italic;
+}
+
 .message-timestamp{
  width: fit-content;
  font-size: 13px;
 }
 .last-message-timestamp{
   font-size: 13px;
+}
+.schedule-modal-overlay{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.schedule-modal{
+    width: 340px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.schedule-modal h3{
+    margin: 0;
+    text-align: center;
+    color: #28282B;
+}
+
+.schedule-modal input{
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    outline: none;
+}
+
+.schedule-modal-buttons{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.schedule-modal-buttons button{
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.schedule-modal-buttons button:first-child{
+    background-color: #ddd;
+}
+
+.schedule-modal-buttons button:last-child{
+    background-color: #e74c3c;
+    color: white;
 }
 /*****************************************************
 ************MEDIA QUERY FOR USER LIST*****************
