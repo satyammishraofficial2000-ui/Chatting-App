@@ -1,7 +1,7 @@
 import { useSelector,useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { hideLoader, showLoader } from "../../../redux/loaderSlice";
-import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
+import { createNewMessage, getAllMessages, deleteMessage } from "../../../apiCalls/message";
 import { useState } from "react";
 import { useEffect } from "react";
 import moment from "moment";
@@ -40,6 +40,7 @@ function ChatArea({ socket }) {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const isChrome = /Chrome/.test(navigator.userAgent);
 
@@ -206,6 +207,40 @@ const clearUnreadMessage  = async () => {
   }
 }
 
+const handleDeleteMessage = async (messageId, deleteType) => {
+
+  try {
+
+    const response = await deleteMessage({
+      messageId,
+      deleteType
+    });
+
+      if(response.success){
+
+        socket.emit('message-deleted', {
+          messageId,
+          chatId: selectedChat._id,
+          members: selectedChat.members.map(
+            m => m._id ? m._id : m
+          )
+        });
+
+        const updatedResponse = await getAllMessages(selectedChat._id);
+
+        if(updatedResponse.success){
+          setAllMessages(updatedResponse.data);
+        }
+
+        toast.success(response.message);
+      }
+
+  } catch(error){
+
+    toast.error(error.message);
+  }
+};
+
 function formatName(user) {
   let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
   let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
@@ -339,11 +374,22 @@ dispatch(setAllChats(updatedChats));
     }
   });
 
+  socket.on('message-deleted', async () => {
+
+  const updatedResponse = await getAllMessages(selectedChat._id);
+
+  if(updatedResponse.success){
+    setAllMessages(updatedResponse.data);
+  }
+
+});
+
   return () => {
     socket.removeAllListeners("receive-message");
     socket.removeAllListeners("unread-messages-cleared");
     socket.removeAllListeners("message-count-cleared");
     socket.removeAllListeners("started-typing");
+    socket.removeAllListeners("message-deleted");
   };
 
 }, [selectedChat]);
@@ -380,7 +426,10 @@ useEffect(() => {
             className="message-container"
             style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
             <div>
-              <div className={isCurrentUserSender ? "send-message" : "received-message"}> 
+             <div className={isCurrentUserSender ? "send-message" : "received-message"}>
+
+              <div className="message-content">
+
                 <div>
                   {
                    msg.sender === user._id ||
@@ -389,6 +438,53 @@ useEffect(() => {
                       : msg.translatedText || msg.text
                   }
                 </div>
+
+                <div className="message-menu">
+
+                  <i
+                      className="fa fa-ellipsis-v"
+                      onClick={() => {
+
+                        if(openMenuId === msg._id){
+                          setOpenMenuId(null);
+                        } else {
+                          setOpenMenuId(msg._id);
+                        }
+
+                      }}
+                    ></i>
+                    {
+                  openMenuId === msg._id && (
+
+                    <div className="message-dropdown">
+
+                      <div
+                        className="message-dropdown-item"
+                        onClick={() => {
+
+                          handleDeleteMessage(
+                            msg._id,
+                            isCurrentUserSender ? "everyone" : "me"
+                          );
+
+                          setOpenMenuId(null);
+
+                        }}
+                      >
+                        {
+                          isCurrentUserSender
+                            ? "Delete for everyone"
+                            : "Delete for me"
+                        }
+                      </div>
+
+                    </div>
+
+                  )
+                }
+
+                </div>
+              </div>
                 
                 {msg.isScheduled && !msg.isDelivered && (
                   <div className="scheduled-message-label">

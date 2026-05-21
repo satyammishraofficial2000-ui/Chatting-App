@@ -77,12 +77,21 @@ route.get('/get-all-messages/:chatId', authMiddleware, async (req, res) => {
 
         // Fetch messages
         const allMessages = await Message.find({
+
             chatId: req.params.chatId,
+
+            isDeletedForEveryone: false,
+
+            deletedFor: {
+                $ne: req.userId
+            },
+
             $or: [
                 { isScheduled: false },
                 { isDelivered: true },
                 { sender: req.userId }
             ]
+
         }).sort({ createdAt: 1 });
 
 
@@ -113,6 +122,57 @@ route.get('/get-all-messages/:chatId', authMiddleware, async (req, res) => {
         });
 
     }
+});
+
+// Route to delete a message
+route.post('/delete-message', authMiddleware, async (req, res) => {
+
+    try {
+
+        const { messageId, deleteType } = req.body;
+
+        const message = await Message.findById(messageId);
+
+        if (!message) {
+            return res.status(404).send({
+                success: false,
+                message: "Message not found"
+            });
+        }
+
+        // Delete for everyone
+        if (
+            deleteType === "everyone" &&
+            String(message.sender) === String(req.userId)
+        ) {
+
+            message.isDeletedForEveryone = true;
+        }
+
+        // Delete for me
+        if (deleteType === "me") {
+
+            if (!message.deletedFor.includes(req.userId)) {
+                message.deletedFor.push(req.userId);
+            }
+        }
+
+        await message.save();
+
+        res.send({
+            success: true,
+            message: "Message deleted successfully"
+        });
+
+    } catch (error) {
+
+        res.status(400).send({
+            success: false,
+            message: error.message
+        });
+
+    }
+
 });
 
 

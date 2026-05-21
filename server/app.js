@@ -55,6 +55,14 @@ io.on('connection', (socket) => {
      .emit('receive-message', message);
      });
 
+     socket.on('message-deleted', (data) => {
+
+          io.to(data.members[0])
+          .to(data.members[1])
+          .emit('message-deleted', data);
+
+          });
+
      socket.on('clear-unread-messages', data => {
           io.to(data.members[0])
           .to(data.members[1])

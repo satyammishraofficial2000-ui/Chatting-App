@@ -27,6 +27,15 @@ const messageScema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
+    deletedFor: {
+        type: [String],
+        default: []
+        },
+
+        isDeletedForEveryone: {
+        type: Boolean,
+        default: false
+        },
 
     isScheduled:{
         type:Boolean,

@@ -517,11 +517,12 @@ i{
 }
 
 .send-message, .received-message{
-    padding: 10px 20px;
+     padding: 22px 20px 10px 20px;
     margin-top: 5px;
     border-radius: 0px;
     font-size: 14px;
     width: fit-content;
+    position: relative;
 }
 
 .send-message{ 
@@ -544,6 +545,24 @@ i{
   border-top-left-radius: 16px;
 }
 
+.message-menu{
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-left: 12px;
+}
+
+.message-menu i{
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+}
+
+.message-content{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
 .scheduled-message-label{
     font-size: 11px;
     margin-top: 5px;
@@ -557,6 +576,28 @@ i{
 }
 .last-message-timestamp{
   font-size: 13px;
+}
+
+.message-dropdown{
+    position: absolute;
+    top: 22px;
+    right: 0;
+    background: white;
+    border-radius: 6px;
+    min-width: 150px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 100;
+}
+
+.message-dropdown-item{
+    padding: 10px;
+    color: black;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.message-dropdown-item:hover{
+    background-color: #f2f2f2;
 }
 .schedule-modal-overlay{
     position: fixed;
