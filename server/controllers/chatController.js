@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const Chat = require('./../modules/chat');
+const CryptoJS = require("crypto-js");
+const SECRET_KEY = process.env.SECRET_KEY;
 
 const Message = require('../modules/message');
 
@@ -23,24 +25,56 @@ router.post('/create-new-chat', authMiddleware, async(req,res) => {
 })
 
 router.get('/get-all-chats', authMiddleware, async(req,res) => {
+
     try{
-        const allChats = await Chat.find({ members: { $in: [req.userId] } })
+
+        const allChats = await Chat.find({
+            members: { $in: [req.userId] }
+        })
         .populate("members")
         .populate("lastMessage")
         .sort({ updatedAt: -1 });
-        
+
+        const decryptedChats = allChats.map(chat => {
+
+            if(chat.lastMessage?.text){
+
+                const decryptedText = CryptoJS.AES.decrypt(
+                    chat.lastMessage.text,
+                    SECRET_KEY
+                ).toString(CryptoJS.enc.Utf8);
+
+                chat.lastMessage.text = decryptedText;
+            }
+
+            if(chat.lastMessage?.translatedText){
+
+                const decryptedTranslatedText = CryptoJS.AES.decrypt(
+                    chat.lastMessage.translatedText,
+                    SECRET_KEY
+                ).toString(CryptoJS.enc.Utf8);
+
+                chat.lastMessage.translatedText =
+                    decryptedTranslatedText;
+            }
+
+            return chat;
+        });
+
         res.status(201).send({
             message: 'chat fetched successfully',
-            success:true, 
-            data: allChats
-        })
+            success:true,
+            data: decryptedChats
+        });
+
     }catch(error){
+
         res.status(400).send({
             message: error.message,
             success:false
-        })
+        });
     }
-})
+});
 
 router.post('/clear-unread-message', authMiddleware, async(req,res) => {
     try{

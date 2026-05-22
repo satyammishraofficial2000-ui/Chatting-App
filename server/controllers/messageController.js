@@ -4,6 +4,8 @@ const Chat = require('./../modules/chat');
 const Message = require('./../modules/message');
 const User = require('./../modules/user');
 const translate = require("google-translate-api-x");
+const CryptoJS = require("crypto-js");
+const SECRET_KEY = process.env.SECRET_KEY;
 
 
 // Route to send a new message
@@ -37,11 +39,26 @@ route.post('/new-message', authMiddleware, async (req, res) => {
             translatedText = result.text;
             }
 
-            const newMessage = new Message({
-            ...req.body,
-            translatedText
-            });
-        const savedMessage = await newMessage.save();
+            const encryptedText = CryptoJS.AES.encrypt(
+                        req.body.text,
+                        SECRET_KEY
+                    ).toString();
+
+                    const encryptedTranslatedText = translatedText
+                        ? CryptoJS.AES.encrypt(
+                            translatedText,
+                            SECRET_KEY
+                        ).toString()
+                        : "";
+
+                    const newMessage = new Message({
+                        ...req.body,
+                        text: encryptedText,
+                        translatedText: encryptedTranslatedText
+                    });
+                const savedMessage = await newMessage.save();
+                savedMessage.text = req.body.text;
+                savedMessage.translatedText = translatedText;
 
             // Update chat only for normal messages
             if(!req.body.isScheduled){
@@ -94,6 +111,30 @@ route.get('/get-all-messages/:chatId', authMiddleware, async (req, res) => {
 
         }).sort({ createdAt: 1 });
 
+        const decryptedMessages = allMessages.map(msg => {
+
+            const decryptedText = CryptoJS.AES.decrypt(
+                msg.text,
+                SECRET_KEY
+            ).toString(CryptoJS.enc.Utf8);
+
+            let decryptedTranslatedText = "";
+
+            if(msg.translatedText){
+
+                decryptedTranslatedText = CryptoJS.AES.decrypt(
+                    msg.translatedText,
+                    SECRET_KEY
+                ).toString(CryptoJS.enc.Utf8);
+            }
+
+            return {
+                ...msg._doc,
+                text: decryptedText,
+                translatedText: decryptedTranslatedText
+            };
+        });
+
 
         // Mark received messages as read
         await Message.updateMany(
@@ -111,7 +152,7 @@ route.get('/get-all-messages/:chatId', authMiddleware, async (req, res) => {
         res.send({
             message: 'Messages fetched successfully',
             success: true,
-            data: allMessages
+            data: decryptedMessages
         });
 
     } catch (error) {

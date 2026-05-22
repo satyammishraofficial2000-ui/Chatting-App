@@ -17,6 +17,7 @@ const chatRouter = require('./controllers/chatController');
 const messageRouter = require('./controllers/messageController');
 const user = require('./modules/user');
 const startScheduledMessagesCron = require('./cron/scheduledMessages');
+require('dotenv').config();
 
 app.use(express.json({
      limit: '50mb'
