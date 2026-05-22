@@ -113,15 +113,7 @@ body{
   color: #475569;
 }
 
-.container-back-img{
-  background-image: url('./../public/images/quick-chat-app-background.jpg');
-  background-repeat: no-repeat;
-  background-size: cover;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  z-index: -2;
-}
+
 .container-back-color{
   background: linear-gradient(
   135deg,
@@ -134,22 +126,76 @@ body{
   position: absolute;
   z-index: -1;
 }
-.container {
-  height: 100vh;
-  width: 100%;
-  align-items: center;
-  display: flex;
-  justify-content: center;
+.container{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(182, 182, 201, 0.15),
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at bottom right,
+        rgba(8, 3, 18, 0.12),
+        transparent 30%
+      ),
+
+      linear-gradient(
+        135deg,
+        #280b6a,
+        #28478f,
+        #000000
+      );
 }
 
-.card {
-  border-radius: 10px;
-  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
-  width: 400px;
-  padding: 20px 0px;
- color: var(--text-primary);
-  padding: 10px 30px;
+.container::before{
+    content: "";
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    background: #6366f1;
+    border-radius: 50%;
+    filter: blur(140px);
+    top: -80px;
+    left: -80px;
+    opacity: 0.45;
 }
+
+.container::after{
+    content: "";
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    filter: blur(140px);
+    bottom: -100px;
+    right: -80px;
+    opacity: 0.4;
+}
+
+.card{
+    width: 420px;
+    padding: 40px 35px;
+    border-radius: 28px;
+    background: rgba(1, 4, 14, 0.42);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.35);
+    position: relative;
+    z-index: 2;
+}
+
 .column{
   display: flex;
   flex-wrap: wrap;
@@ -168,16 +214,23 @@ body{
 .card_title h1 {
   font-size: 26px;
   font-weight: bold;
+  color: white;
 }
 
 .form input {
   margin-bottom: 5px;
   width: 100%;
-  background-color: #efefef;
   border: none;
   outline: none;
   padding: 12px 20px;
   border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+}
+
+.form input::placeholder{
+    color: rgba(255,255,255,0.55);
 }
 
 .form button {
@@ -192,10 +245,10 @@ body{
   margin-top: 10px;
 }
 
-.card_terms {
-  display: flex;
-  align-items: center;
-  padding: 10px;
+.card_terms{
+    margin-top: 18px;
+    text-align: center;
+    color: rgba(255,255,255,0.72);
 }
 
 .card_terms input[type="checkbox"] {
@@ -206,11 +259,33 @@ body{
   margin: 5px;
   font-size: 13px;
 }
+.card_terms a{
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+}
 
 .card a {
   color: #4796ff;
   text-decoration: none;
   margin-left: 5px;
+}
+
+.card::before{
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255,255,255,0.06),
+        transparent
+      );
+
+    pointer-events: none;
 }
 
 /* Loader Styles */
@@ -1175,4 +1250,167 @@ input[type="file"]::file-selector-button:active {
 
 .light-theme .main-chat-area::-webkit-scrollbar-thumb{
   background: #818cf8;
+}
+
+/* LOGOUT MODAL */
+
+.logout-modal-overlay{
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    backdrop-filter: blur(8px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.logout-modal{
+
+    width: 360px;
+
+    background: rgba(17,24,39,0.92);
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 24px;
+
+    padding: 30px 24px;
+
+    text-align: center;
+
+    box-shadow:
+      0 10px 40px rgba(0,0,0,0.35);
+
+    animation: logoutPopup 0.25s ease;
+}
+
+.logout-warning-icon{
+
+    width: 70px;
+    height: 70px;
+
+    margin: auto;
+
+    border-radius: 50%;
+
+    background:
+      linear-gradient(
+        135deg,
+        #6366f1,
+        #8b5cf6
+      );
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+
+    font-size: 28px;
+
+    margin-bottom: 20px;
+}
+
+.logout-modal h2{
+    color: white;
+    margin-bottom: 10px;
+}
+
+.logout-modal p{
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.logout-modal-buttons{
+    display: flex;
+    gap: 12px;
+}
+
+.cancel-logout-btn,
+.confirm-logout-btn{
+
+    flex: 1;
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 12px;
+
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+.cancel-logout-btn{
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+.cancel-logout-btn:hover{
+    background: rgba(255,255,255,0.14);
+}
+
+.confirm-logout-btn{
+    background:
+      linear-gradient(
+        135deg,
+        #6366f1,
+        #8b5cf6
+      );
+
+    color: white;
+}
+
+.confirm-logout-btn:hover{
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
+@keyframes logoutPopup{
+
+    from{
+        opacity: 0;
+        transform: scale(0.92);
+    }
+
+    to{
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* LIGHT MODE */
+
+.light-theme .logout-modal{
+
+    background: rgba(255,255,255,0.88);
+
+    border: 1px solid rgba(255,255,255,0.45);
+}
+
+.light-theme .logout-modal h2{
+    color: #0f172a;
+}
+
+.light-theme .logout-modal p{
+    color: #475569;
+}
+
+.light-theme .cancel-logout-btn{
+    background: rgba(0,0,0,0.06);
+    color: #0f172a;
+}
+
+.light-theme .cancel-logout-btn:hover{
+    background: rgba(0,0,0,0.1);
 }

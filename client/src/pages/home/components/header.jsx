@@ -15,6 +15,7 @@ function Header({socket}) {
                 document.body.classList.remove("light-theme");
             }
         }, [theme]);
+        const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 
     const { user } = useSelector(state => state.usersReducer);
@@ -36,19 +37,13 @@ function getInitials(){
 
 const logout = () => {
 
-    const confirmLogout = window.confirm(
-        "Are you sure you want to logout?"
-    );
+    localStorage.removeItem("token");
 
-    if(confirmLogout){
-
-        localStorage.removeItem("token");
-
-        navigate('/login');
-    }
+    navigate('/login');
 }
 
     return(
+           <>
         <div className="app-header">
             <div className="app-logo">
                 <i className="fa fa-comments"></i>
@@ -84,12 +79,55 @@ const logout = () => {
                     >
                     </button>
 
-                    <button className="logout-button" onClick={logout}>
+                    <button className="logout-button" onClick={() => setShowLogoutModal(true)}>
                         <i className="fa fa-power-off"></i>
                     </button>
                 
             </div>
         </div>
+
+        {
+                showLogoutModal && (
+
+                    <div className="logout-modal-overlay">
+
+                        <div className="logout-modal">
+
+                            <div className="logout-warning-icon">
+                                <i className="fa fa-sign-out"></i>
+                            </div>
+
+                            <h2>Logout?</h2>
+
+                            <p>
+                                Are you sure you want to logout
+                                from Quick Chat?
+                            </p>
+
+                            <div className="logout-modal-buttons">
+
+                                <button
+                                    className="cancel-logout-btn"
+                                    onClick={() => setShowLogoutModal(false)}
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    className="confirm-logout-btn"
+                                    onClick={logout}
+                                >
+                                    Logout
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                )
+            }
+            </>
     );
 }
 

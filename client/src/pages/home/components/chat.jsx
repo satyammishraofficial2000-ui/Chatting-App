@@ -2,8 +2,7 @@ import { useSelector,useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { hideLoader, showLoader } from "../../../redux/loaderSlice";
 import { createNewMessage, getAllMessages, deleteMessage } from "../../../apiCalls/message";
-import { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import moment from "moment";
 import {clearUnreadMessages} from "../../../apiCalls/chat";
 import { setAllChats } from "../../../redux/usersSlice";
@@ -34,7 +33,7 @@ function ChatArea({ socket }) {
   );
   const  [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const recognition = new SpeechRecognition();
+  const recognition = useMemo( () => new SpeechRecognition(),[] );
   const [isListening, setIsListening] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
@@ -564,10 +563,13 @@ useEffect(() => {
         ></button>
 
         <button className="send-mic-btn"  onClick={() => {
-                            if(!isListening){
-                              recognition.start();
-                            }
-                          }}
+                    if(isListening){
+                        recognition.stop();
+                        setIsListening(false);
+                    }else{
+                        recognition.start();
+                    }
+                }}
             >
           <FaMicrophone />
         </button>
