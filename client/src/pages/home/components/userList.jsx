@@ -159,13 +159,14 @@ function getData() {
           if(obj.members){
             user = obj.members.find(mem => (mem._id ? mem._id : mem) !== currentUser._id);
           }
-
+          
+          if(!user) return null;
           return (
             <div className="user-search-filter" key={user._id}>
               <div className={IsSelectedChat(user) ? "selected-user" : "filtered-user"} onClick={() => openChat(user._id)}>
                 <div className="filter-user-display">
 
-                  {user.profilePic && (
+                  {user?.profilePic && (
                     <img
                       src={user.profilePic}
                       alt="Profile Pic"
@@ -174,20 +175,20 @@ function getData() {
                     />
                   )}
 
-                  {!user.profilePic && (
+                  {!user?.profilePic && (
                     <div className={"user-default-avatar"}
                     style={onlineUsers?.some(onlineUser => onlineUser.userId === user._id || onlineUser === user._id)? {border: 'green 3px solid'} : {}}
                     >
                       {
-                        user.firstname.charAt(0).toUpperCase() +
-                        user.lastname.charAt(0).toUpperCase()
+                         (user?.firstname?.charAt(0) || "") +
+                          (user?.lastname?.charAt(0) || "")
                       }
                     </div>
                   )}
 
                   <div className="filter-user-details">
-                    <div className="user-display-name"> {user.firstname + " " + user.lastname} </div>
-                    <div className="user-display-email"> { getlastMessage(user._id) || user.email}</div>
+                    <div className="user-display-name"> {(user?.firstname || "") + " " + (user?.lastname || "")} </div>
+                    <div className="user-display-email"> { getlastMessage(user?._id) || user?.email}</div>
                   </div>
                   <div>
                     {getUnreadMessageCount(user._id)}

@@ -4,7 +4,10 @@ const User = require('./../modules/user');
 
 const bcrypt = require('bcryptjs');
 
-const jwt =  require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 router.post('/signup',async(req, res) =>{
    try{
@@ -73,6 +76,50 @@ router.post('/login', async (req,res) => {
             success : false
         })
     }
+});
+
+router.post('/google-login', async (req, res) => {
+
+    try {
+
+        const { email, firstname, lastname, profilePic } = req.body;
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+
+            user = new User({
+                firstname,
+                lastname,
+                email,
+                password: "google-login-user",
+                profilePic
+            });
+
+            await user.save();
+        }
+
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.SECRET_KEY,
+            { expiresIn: "30d" }
+        );
+
+        res.send({
+            success: true,
+            message: "Google login successful",
+            token
+        });
+
+    } catch (error) {
+
+        res.send({
+            success: false,
+            message: error.message
+        });
+
+    }
+
 });
 
 module.exports = router;
