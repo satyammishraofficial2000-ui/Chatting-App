@@ -433,11 +433,38 @@ const addReaction = (messageId) => {
   return (
     <div className="app-chat-area">
 
-      <div className="app-chat-area-header">
-        {formatName(selectedUser)}
         
-      </div>
+        <div
+          className="app-chat-area-header"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
 
+          <div>
+            {
+              isTyping && (
+                <span
+                  style={{
+                    color: "#22C55E",
+                    fontSize: "14px",
+                    fontStyle: "italic",
+                    fontWeight: "500"
+                  }}
+                >
+                  typing...
+                </span>
+              )
+            }
+          </div>
+
+          <div>
+            {formatName(selectedUser)}
+          </div>
+
+        </div>
      
 <div className="main-chat-area" id="main-chat-area">
   {allMessages.map((msg, index) => {
@@ -485,6 +512,11 @@ const addReaction = (messageId) => {
 
                   <i
                       className="fa fa-ellipsis-v"
+                      style={{
+                        fontSize: "30px",
+                        padding: "5px",
+                        cursor: "pointer"
+                      }}
                       onClick={() => {
 
                         if(openMenuId === msg._id){
@@ -494,34 +526,37 @@ const addReaction = (messageId) => {
                         }
 
                       }}
-                    ></i>
+                  ></i>
                     {
                   openMenuId === msg._id && (
 
-                    <div className="message-dropdown">
+                  <div
+                    className="message-dropdown"
+                    style={{
+                      marginTop: "12px"
+                    }}
+                  >
+                    <div
+                      className="message-dropdown-item"
+                      onClick={() => {
 
-                      <div
-                        className="message-dropdown-item"
-                        onClick={() => {
+                        handleDeleteMessage(
+                          msg._id,
+                          isCurrentUserSender ? "everyone" : "me"
+                        );
 
-                          handleDeleteMessage(
-                            msg._id,
-                            isCurrentUserSender ? "everyone" : "me"
-                          );
+                        setOpenMenuId(null);
 
-                          setOpenMenuId(null);
-
-                        }}
-                      >
-                        {
-                          isCurrentUserSender
-                            ? "Delete for everyone"
-                            : "Delete for me"
-                        }
-                      </div>
-
+                      }}
+                    >
+                      {
+                        isCurrentUserSender
+                          ? "Delete for everyone"
+                          : "Delete for me"
+                      }
                     </div>
 
+                  </div>
                   )
                 }
 
@@ -552,7 +587,6 @@ const addReaction = (messageId) => {
           </div>
         );
       })}
-      <div className="typing-indicator">{isTyping && <i>typing....</i>}</div>
     </div>
       
       
