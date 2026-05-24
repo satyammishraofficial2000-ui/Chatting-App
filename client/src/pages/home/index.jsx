@@ -6,7 +6,7 @@ import {io} from "socket.io-client";
 import { useEffect } from "react";
 import { useState } from 'react';
 
-const socket = io('http://localhost:3000');
+const socket = io('https://quick-chat-app-qviu.onrender.com');
 
 function Home(){
 

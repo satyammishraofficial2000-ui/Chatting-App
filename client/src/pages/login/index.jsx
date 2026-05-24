@@ -191,7 +191,7 @@ function Login(){
                                 setForgotStep(1);
 
                                 await axios.post(
-                                "http://localhost:3000/api/otp/send-otp",
+                                "https://quick-chat-app-qviu.onrender.com/api/otp/send-otp",
                                 {
                                     email: forgotEmail
                                 }
@@ -247,7 +247,7 @@ function Login(){
                                     }
 
                                     const response = await axios.post(
-                                        "http://localhost:3000/api/otp/verify-otp",
+                                        "https://quick-chat-app-qviu.onrender.com/api/otp/verify-otp",
                                         {
                                             email: forgotEmail,
                                             otp: forgotOtp
@@ -333,7 +333,7 @@ function Login(){
                             }
 
                             const response = await axios.post(
-                                "http://localhost:3000/api/auth/reset-password",
+                                "https://quick-chat-app-qviu.onrender.com/api/auth/reset-password",
                                 {
                                 email: forgotEmail,
                                 password: newPassword
