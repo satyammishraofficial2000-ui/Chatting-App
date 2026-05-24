@@ -38,6 +38,26 @@ export const googleLogin = async (user) => {
     }
 };
 
+// Check if email exists API call
+export const checkEmailExists = async (email) => {
+
+    try {
+
+        const response = await axiosInstance.post(
+            url + '/api/otp/check-email',
+            { email }
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        return error.response.data;
+
+    }
+
+};
+
 // Send OTP API call
 export const sendOTP = async (email) => {
     try {

@@ -90,6 +90,10 @@ function Signup(){
                 return;
             }
           event.preventDefault();
+          if(user.password !== confirmPassword){
+                toast.error("Passwords do not match");
+                return;
+            }
           let response = null;
           try {
             dispatch(showLoader());

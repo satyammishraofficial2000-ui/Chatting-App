@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const OTP = require('../modules/otpModel');
 const sendEmail = require('../utils/sendEmail');
+const User = require('../modules/user');
 
 router.post('/send-otp', async (req, res) => {
     try {
@@ -73,6 +74,41 @@ router.post('/verify-otp', async (req, res) => {
             success: false,
             message: 'Server error'
         });
+    }
+
+});
+
+router.post('/check-email', async (req, res) => {
+
+    try {
+
+        const { email } = req.body;
+
+        const existingUser = await User.findOne({ email });
+
+        if (!existingUser) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'Account not found'
+            });
+
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Account exists'
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+
     }
 
 });

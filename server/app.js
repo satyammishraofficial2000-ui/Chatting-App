@@ -15,7 +15,6 @@ const authRouter = require('./controllers/authController');
 const userRouter = require('./controllers/userController');
 const chatRouter = require('./controllers/chatController');
 const messageRouter = require('./controllers/messageController');
-const user = require('./modules/user');
 const startScheduledMessagesCron = require('./cron/scheduledMessages');
 require('dotenv').config();
 const sendEmail = require('./utils/sendEmail');

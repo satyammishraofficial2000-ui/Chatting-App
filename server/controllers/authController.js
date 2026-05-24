@@ -122,4 +122,37 @@ router.post('/google-login', async (req, res) => {
 
 });
 
+router.post('/reset-password', async (req, res) => {
+
+    try {
+
+        const { email, password } = req.body;
+
+        const bcrypt = require('bcryptjs');
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await User.findOneAndUpdate(
+            { email },
+            { password: hashedPassword }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Password updated successfully'
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+
+    }
+
+});
+
 module.exports = router;
