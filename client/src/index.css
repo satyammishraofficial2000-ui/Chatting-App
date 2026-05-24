@@ -51,7 +51,7 @@
     transform 0.2s ease;
 }
 body{
-  overflow: hidden;
+  overflow-x: hidden;
 }
 /* LIGHT MODE FIXES */
 
@@ -414,6 +414,17 @@ i{
 .app-sidebar{
   width: 30%;
   padding: 0px 20px;
+  height: 85vh;
+  overflow-y: auto;
+}
+
+.app-sidebar::-webkit-scrollbar{
+  width: 4px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb{
+  background: #6366f1;
+  border-radius: 10px;
 }
 
 /*******************************************************
