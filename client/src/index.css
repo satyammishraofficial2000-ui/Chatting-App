@@ -244,6 +244,18 @@ body{
   width: 100%;
   margin-top: 10px;
 }
+.google-login-wrapper{
+  width: 100%;
+  margin-top: 15px;
+}
+
+.google-login-wrapper > div{
+  width: 100% !important;
+}
+
+.google-login-wrapper iframe{
+  width: 100% !important;
+}
 
 .card_terms{
     margin-top: 18px;

@@ -63,7 +63,7 @@ function Login(){
             onChange={ (e) => setUser({...user, password:e.target.value}) }  />
             <button>Login</button>
 
-                <div style={{ marginTop: "15px" }}>
+                <div className="google-login-wrapper">
                         <GoogleLogin
                             onSuccess={async (credentialResponse) => {
 
