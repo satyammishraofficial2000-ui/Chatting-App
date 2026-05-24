@@ -1,22 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 const app = express();
-app.use(cors({
-   origin:[
-               "https://chatting-app-gamma-blue.vercel.app/",
-               "http://localhost:3000",
-               "http://localhost:3001",
-               "http://192.168.1.51:3001"
-               ],
-   credentials: true
-}))
+app.use(cors());
 
 const authRouter = require('./controllers/authController');
 const userRouter = require('./controllers/userController');
 const chatRouter = require('./controllers/chatController');
 const messageRouter = require('./controllers/messageController');
 const startScheduledMessagesCron = require('./cron/scheduledMessages');
-require('dotenv').config();
 const sendEmail = require('./utils/sendEmail');
 const otpRouter = require('./controllers/otpController');
 
@@ -25,15 +17,10 @@ app.use(express.json({
 }));
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
-     cors: {
-          origin:[
-                    "https://chatting-app-gamma-blue.vercel.app/",
-                    "http://localhost:3000",
-                    "http://localhost:3001",
-                    "http://192.168.1.51:3001"
-                    ],
-          methods: ['GET', 'POST']
-     }
+          cors: {
+          origin: "*",
+          methods: ["GET", "POST"]
+          }
 });
 
 app.use('/api/auth', authRouter);
