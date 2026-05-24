@@ -12,6 +12,7 @@ function Home(){
 
      const {selectedChat, user} = useSelector(state => state.usersReducer);
      const [onlineUsers, setOnlineUsers] = useState([]);
+     const [mobileChatOpen,setMobileChatOpen] = useState(false)
       
      useEffect(() => {
           if(user){
@@ -29,10 +30,24 @@ function Home(){
      return (
           <div className="home-page">
                <Header socket={socket}></Header>
-               <div className="main-content">
-                    <Sidebar socket={socket} onlineUsers={onlineUsers}></Sidebar>
-                   { selectedChat && <ChatArea socket={socket}></ChatArea>}
-               </div>
+                         <div className="main-content">
+
+                         {(!mobileChatOpen || window.innerWidth > 768) && (
+                         <Sidebar
+                              socket={socket}
+                              onlineUsers={onlineUsers}
+                              setMobileChatOpen={setMobileChatOpen}
+                         />
+                         )}
+
+                         {selectedChat && (mobileChatOpen || window.innerWidth > 768) && (
+                         <ChatArea
+                              socket={socket}
+                              setMobileChatOpen={setMobileChatOpen}
+                         />
+                         )}
+
+                         </div>
           </div>
 
      );

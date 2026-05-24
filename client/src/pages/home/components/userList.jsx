@@ -12,7 +12,7 @@ import store from "../../../redux/store";
 import { deleteChatForMe } from "../../../apiCalls/chat";
 
 
-function UserList({ searchKey, socket, onlineUsers}) {
+function UserList({ searchKey, socket, onlineUsers, setMobileChatOpen}) {
 
   const { allusers, allChats, user: currentUser, selectedChat } = useSelector(state => state.usersReducer);
   const dispatch = useDispatch();
@@ -34,6 +34,9 @@ function UserList({ searchKey, socket, onlineUsers}) {
         const updatedChat = [newChat, ...allChats];;
         dispatch(setAllChats(updatedChat));
         dispatch(setSelectedChat(newChat));
+        if(window.innerWidth <= 768){
+          setMobileChatOpen(true)
+        }
       }
     }catch(error){
       toast.error(response?.message);
@@ -46,10 +49,13 @@ function UserList({ searchKey, socket, onlineUsers}) {
     (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(currentUser._id) &&
     (chat?.members?.map(m => (m._id ? m._id : m)) || []).includes(selectedUserId)
   );
-
-  if (chat) {
-    dispatch(setSelectedChat(chat));
-  }
+  
+        if (chat) {
+      dispatch(setSelectedChat(chat));
+      if(window.innerWidth <= 768){
+        setMobileChatOpen(true)
+      }
+    }
 };
 
 

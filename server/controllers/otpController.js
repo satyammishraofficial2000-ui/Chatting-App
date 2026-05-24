@@ -19,11 +19,94 @@ router.post('/send-otp', async (req, res) => {
             email,
             otp
         });
-        await sendEmail(
-            email,
-            'QuickChat OTP Verification',
-            `Your OTP is ${otp}`
-        );
+            await sendEmail(
+                email,
+                'QuickChat Email Verification',
+                `
+                <div style="
+                background:#f4f7fb;
+                padding:40px 20px;
+                font-family:Arial,sans-serif;
+                ">
+                
+                <div style="
+                    max-width:500px;
+                    margin:auto;
+                    background:white;
+                    border-radius:18px;
+                    overflow:hidden;
+                    box-shadow:0 8px 30px rgba(0,0,0,0.08);
+                ">
+
+                    <div style="
+                    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                    padding:30px;
+                    text-align:center;
+                    color:white;
+                    ">
+                    <h1 style="margin:0;">QuickChat</h1>
+                    <p style="margin-top:8px;font-size:14px;">
+                        Secure Email Verification
+                    </p>
+                    </div>
+
+                    <div style="padding:35px 30px;color:#333;">
+
+                    <h2>Hello 👋</h2>
+
+                    <p style="line-height:1.7;">
+                        Use the OTP below to verify your email for your
+                        QuickChat account.
+                    </p>
+
+                    <div style="
+                        margin:30px 0;
+                        text-align:center;
+                    ">
+                        <span style="
+                        display:inline-block;
+                        background:#eef2ff;
+                        color:#4f46e5;
+                        padding:18px 40px;
+                        font-size:34px;
+                        font-weight:bold;
+                        border-radius:14px;
+                        letter-spacing:6px;
+                        ">
+                        ${otp}
+                        </span>
+                    </div>
+
+                    <p style="
+                        font-size:14px;
+                        color:#666;
+                        line-height:1.6;
+                    ">
+                        This OTP will expire in 5 minutes.
+                        Do not share this code with anyone.
+                    </p>
+
+                    <hr style="
+                        margin:30px 0;
+                        border:none;
+                        border-top:1px solid #eee;
+                    ">
+
+                    <p style="
+                        text-align:center;
+                        font-size:13px;
+                        color:#888;
+                    ">
+                        © 2026 QuickChat. All rights reserved.
+                    </p>
+
+                    </div>
+
+                </div>
+
+                </div>
+                `
+            );
         res.status(200).json({
             success: true,
             message: 'OTP sent successfully'

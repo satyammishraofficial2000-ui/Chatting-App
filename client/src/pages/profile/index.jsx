@@ -6,12 +6,14 @@ import { uploadProfilePic, updatePreferredLanguage } from '../../apiCalls/users'
 import { hideLoader, showLoader } from '../../redux/loaderSlice';
 import { setUser } from '../../redux/usersSlice';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from "react-router-dom";
 
 function Profile(){
     const { user } = useSelector(state => state.usersReducer);
     const [image, setImage] = useState(null);
     const [preferredLanguage, setPreferredLanguage] = useState(user?.preferredLanguage || "en");
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if(user?.profilePic){
@@ -91,6 +93,10 @@ const onLanguageChange = async (e) => {
 
    return (
     <div className="profile-page-container">
+        <i
+            className="fa fa-arrow-left profile-back-btn"
+            onClick={() => navigate("/")}
+            ></i>
         <div className="profile-pic-container">
            { image && <img src={image} 
                  alt="Profile Pic" 

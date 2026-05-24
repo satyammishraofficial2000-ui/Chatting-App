@@ -16,7 +16,7 @@ import { reactToMessage } from "../../../apiCalls/message";
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-function ChatArea({ socket }) {
+function ChatArea({ socket,setMobileChatOpen  }) {
 
   const dispatch = useDispatch();
   const { selectedChat, user, allusers,allChats } = useSelector((state) => state.usersReducer);
@@ -45,8 +45,9 @@ function ChatArea({ socket }) {
 
   const isChrome = /Chrome/.test(navigator.userAgent);
 
-    if(!isChrome){
+if (!window.voiceToastShown) {
       toast.error("Voice input works best in Google Chrome");
+      window.voiceToastShown = true;
     }
 
   recognition.continuous = false;
@@ -485,6 +486,11 @@ const addReaction = async (messageId, emoji) => {
             alignItems: "center"
           }}
         >
+
+          <i
+            className="fa fa-arrow-left mobile-back-btn"
+            onClick={() => setMobileChatOpen(false)}
+          ></i>
 
           <div>
             {
