@@ -43,13 +43,12 @@ function ChatArea({ socket,setMobileChatOpen  }) {
   const [liveTranscript, setLiveTranscript] = useState("");
   const [showReactionPicker, setShowReactionPicker] = useState(null);
 
-  const isChrome = /Chrome/.test(navigator.userAgent);
+const isChrome = /Chrome/.test(navigator.userAgent);
 
-if (!window.voiceToastShown) {
-      toast.error("Voice input works best in Google Chrome");
-      window.voiceToastShown = true;
-    }
-
+  if (!isChrome && !window.voiceToastShown) {
+    toast.error("Voice input works best in Google Chrome");
+    window.voiceToastShown = true;
+  }
   recognition.continuous = false;
   recognition.lang = "en-US";
   recognition.interimResults = false;
@@ -97,17 +96,6 @@ recognition.onerror = (event) => {
         isDelivered: scheduleDateTime ? false : true,
       };
 
-       // Emit the message to socket server only if it's not a scheduled message
-          if(scheduleDateTime){
-
-            setAllMessages(prev => [...prev, {
-              ...newMessage,
-              read: false,
-              createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
-            }]);
-
-          }
-
           const tempMessage = {
               ...newMessage,
               _id: Date.now(),
@@ -127,7 +115,7 @@ recognition.onerror = (event) => {
             ...response.data,
             members: selectedChat.members.map(m => m._id ? m._id : m),
           });
-       // setAllMessages(prev => [...prev, response.data]);
+       //setAllMessages(prev => [...prev, response.data]);
 
        }
 
@@ -136,17 +124,6 @@ recognition.onerror = (event) => {
       setScheduledTime("");
       setShowScheduleModal(false);
       setShowEmojiPicker(false);
-
-     if(scheduleDateTime){
-
-        setAllMessages(prev => [...prev, {
-          ...newMessage,
-          read: false,
-          createdAt: moment().format('YYYY-MM-DD hh:mm:ss')
-        }]);
-
-      }
-
        /* toast.success(response.message);
         setMessage("");*/
 
@@ -415,13 +392,13 @@ socket.on('message-reaction-updated', (data) => {
 
 });
 
-  return () => {
-    socket.removeAllListeners("receive-message");
-    socket.removeAllListeners("unread-messages-cleared");
-    socket.removeAllListeners("message-count-cleared");
-    socket.removeAllListeners("started-typing");
-    socket.removeAllListeners("message-deleted");
-  };
+return () => {
+  socket.off("receive-message");
+  socket.off("unread-messages-cleared");
+  socket.off("message-count-cleared");
+  socket.off("started-typing");
+  socket.off("message-deleted");
+};
 
 }, [selectedChat]);
 
