@@ -746,6 +746,7 @@ i{
     display: flex;
     flex-direction: column;
     margin-top: 8px;
+    scroll-behavior: smooth;
 }
 
 .message{
@@ -1846,6 +1847,9 @@ input[type="file"]::file-selector-button:active {
     font-size: 15px;
     line-height: 1.4;
     padding: 12px 14px;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .message-timestamp{
@@ -1979,4 +1983,38 @@ input[type="file"]::file-selector-button:active {
   color: #6366f1;
   cursor: pointer;
   z-index: 999;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.single-message {
+  animation: fadeSlide 0.18s ease;
+}
+
+button,
+.send-message-btn,
+.send-mic-btn,
+.send-emoji-btn,
+.send-schedule-btn,
+.send-image-btn{
+  transition: all 0.15s ease;
+}
+
+button:active,
+.send-message-btn:active,
+.send-mic-btn:active,
+.send-emoji-btn:active,
+.send-schedule-btn:active,
+.send-image-btn:active{
+  transform: scale(0.92);
 }

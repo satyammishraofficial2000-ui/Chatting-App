@@ -108,6 +108,16 @@ recognition.onerror = (event) => {
 
           }
 
+          const tempMessage = {
+              ...newMessage,
+              _id: Date.now(),
+              sending: true,
+              createdAt: new Date()
+            };
+
+           setAllMessages((prev) => [...prev, tempMessage]);
+
+            setMessage("");
       //dispatch(showLoader());
       const response = await createNewMessage(newMessage);
       //dispatch(hideLoader());
@@ -117,12 +127,11 @@ recognition.onerror = (event) => {
             ...response.data,
             members: selectedChat.members.map(m => m._id ? m._id : m),
           });
-        setAllMessages(prev => [...prev, response.data]);
+       // setAllMessages(prev => [...prev, response.data]);
 
        }
 
      if(response.success){
-      setMessage("");
       setScheduledDate("");
       setScheduledTime("");
       setShowScheduleModal(false);
@@ -166,9 +175,9 @@ const formateTime = (timestamp) => {
 const getMessages = async () => {
   try{
 
-    dispatch(showLoader());
+
     const response = await getAllMessages(selectedChat._id);
-    dispatch(hideLoader());
+
 
     if(response.success){
       setAllMessages(response.data);
@@ -212,35 +221,25 @@ const clearUnreadMessage  = async () => {
 }
 
 const handleDeleteMessage = async (messageId, deleteType) => {
-
   try {
-
     const response = await deleteMessage({
       messageId,
       deleteType
     });
-
-      if(response.success){
-
-        socket.emit('message-deleted', {
-          messageId,
-          chatId: selectedChat._id,
-          members: selectedChat.members.map(
-            m => m._id ? m._id : m
-          )
-        });
-
-        const updatedResponse = await getAllMessages(selectedChat._id);
-
-        if(updatedResponse.success){
-          setAllMessages(updatedResponse.data);
-        }
-
-        toast.success(response.message);
-      }
-
+    if(response.success){
+      socket.emit('message-deleted', {
+        messageId,
+        chatId: selectedChat._id,
+        members: selectedChat.members.map(
+          m => m._id ? m._id : m
+        )
+      });
+      setAllMessages(prev =>
+        prev.filter(msg => msg._id !== messageId)
+      );
+      //toast.success(response.message);
+    }
   } catch(error){
-
     toast.error(error.message);
   }
 };
@@ -313,9 +312,16 @@ dispatch(setAllChats(updatedChats));
               msg.sender === message.sender
             )
         );
+          const exists = filteredMessages.some(
+            msg => String(msg._id) === String(message._id)
+          );
 
-        return [...filteredMessages, message];
-      });
+          if(exists){
+            return filteredMessages;
+          }
+
+          return [...filteredMessages, message];
+                });
 
     }
 
@@ -379,14 +385,10 @@ dispatch(setAllChats(updatedChats));
   });
 
   // Listen for message deletion
-  socket.on('message-deleted', async () => {
-
-  const updatedResponse = await getAllMessages(selectedChat._id);
-
-  if(updatedResponse.success){
-    setAllMessages(updatedResponse.data);
-  }
-
+socket.on('message-deleted', (data) => {
+  setAllMessages(prev =>
+    prev.filter(msg => msg._id !== data.messageId)
+  );
 });
 
 // Listen for message reaction updates
@@ -425,8 +427,12 @@ socket.on('message-reaction-updated', (data) => {
 
 useEffect(() => {
   const msgContainer = document.getElementById('main-chat-area');
-  msgContainer.scrollTop = msgContainer.scrollHeight;
-},[allMessages]);
+  if(msgContainer){
+    requestAnimationFrame(() => {
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    });
+  }
+}, [allMessages]);
 
 
 
@@ -522,7 +528,7 @@ const addReaction = async (messageId, emoji) => {
 
     return (
       <div
-            key={index}
+            key={msg._id}
             className="message-container"
             style={isCurrentUserSender ? { justifyContent: "end" } : { justifyContent: "start" }}>
             <div>
@@ -684,17 +690,19 @@ const addReaction = async (messageId, emoji) => {
           className="send-message-input"
           placeholder="Type a message"
           value={message}
-          onChange={(e) => {
-              setMessage(e.target.value)
-
-              socket.emit('user-typing',{
-                chatId: selectedChat._id,
-                senderId: user._id,
-                members: selectedChat.members.map(
-                  m => m._id ? m._id : m
-                )
-              })
-          }}
+            onChange={(e) => {
+                setMessage(e.target.value);
+                clearTimeout(window.typingTimeout);
+                window.typingTimeout = setTimeout(() => {
+                    socket.emit('user-typing', {
+                        chatId: selectedChat._id,
+                        senderId: user._id,
+                        members: selectedChat.members.map(
+                            m => m._id ? m._id : m
+                        )
+                    });
+                }, 300);
+            }}
 
           onKeyDown={(e) => {
 
