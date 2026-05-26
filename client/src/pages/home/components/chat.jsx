@@ -634,7 +634,7 @@ const addReaction = async (messageId, emoji) => {
                   }
 
               <div className="message-content">
-                  {msg.replyTo && (
+                  {msg.replyTo?.text && (
                     <div className="chat-reply-box">
                       <div className="chat-reply-line"></div>
                       <div className="chat-reply-content">
