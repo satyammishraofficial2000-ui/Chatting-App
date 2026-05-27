@@ -1,31 +1,31 @@
-const { Resend } = require('resend');
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const sendEmail = async (to, subject, html) => {
-
-    try {
-
-        const response = await resend.emails.send({
-
-            from: 'QuickChat <onboarding@resend.dev>',
-
-            to,
-
-            subject,
-
-            html
-
-        });
-
-        console.log("Email sent:", response);
-
-    } catch (error) {
-
-        console.log("Email sending failed:", error);
+const transporter = nodemailer.createTransport({
+    host: "smtp-relay.brevo.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.BREVO_EMAIL,
+        pass: process.env.BREVO_PASS
 
     }
+});
 
+const sendEmail = async (to, subject, html) => {
+    try {
+        const info = await transporter.sendMail({
+            from: process.env.BREVO_EMAIL,
+            to,
+            subject,
+            html
+        });
+        console.log("Email sent:", info.response);
+    } catch (error) {
+        console.log(
+            "Email sending failed:",
+            error.message
+        );
+    }
 };
 
 module.exports = sendEmail;

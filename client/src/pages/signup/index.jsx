@@ -44,6 +44,7 @@ function Signup(){
             try {
                 dispatch(showLoader());
                 const response = await sendOTP(user.email);
+                console.log(response);
                 dispatch(hideLoader());
                 if (response.success) {
                     toast.success("OTP sent successfully");
@@ -85,6 +86,7 @@ function Signup(){
         }
 
      async function onFormSubmit(event){
+             event.preventDefault();
             if (!isOtpVerified) {
                 toast.error("Please verify OTP first");
                 return;
