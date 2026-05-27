@@ -23,15 +23,24 @@ function ChatArea({ socket,setMobileChatOpen  }) {
   const [message, setMessage] = useState("");
   const [allMessages, setAllMessages] = useState([]);
 
-  // get the other user's id from chat members
+
+// Determine the selected user based on whether it's a self-chat or not
+const isSelfChat = selectedChat?.isSelfChat;
+let selectedUser = null;
+if(isSelfChat){
+selectedUser = {
+  firstname: "You",
+  lastname: " ",
+  _id: user._id
+};
+} else {
   const otherUserId = selectedChat.members.find(
     member => (member._id ? member._id : member) !== user._id
   );
-
-  // find full user details from allusers
-  const selectedUser = allusers.find(
+  selectedUser = allusers.find(
     u => u._id === (otherUserId._id ? otherUserId._id : otherUserId)
   );
+}
   const  [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const recognition = useMemo( () => new SpeechRecognition(),[] );

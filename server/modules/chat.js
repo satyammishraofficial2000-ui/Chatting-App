@@ -6,6 +6,10 @@ const chatSchema = new mongoose.Schema({
              {type: mongoose.Schema.Types.ObjectId, ref: "users"}
         ]
     },
+    isSelfChat: {
+        type: Boolean,
+        default: false
+        },
     lastMessage: {
         type: mongoose.Schema.Types.ObjectId, ref: "message"
     },

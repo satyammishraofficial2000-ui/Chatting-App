@@ -1,5 +1,5 @@
 const router = require('express').Router();
-
+const Chat = require('./../modules/chat');
 const User = require('./../modules/user');
 
 const bcrypt = require('bcryptjs');
@@ -28,7 +28,11 @@ router.post('/signup',async(req, res) =>{
 
     // create new user and save it to database
     const newUser = new User(req.body);
-    await newUser.save();
+    const savedUser = await newUser.save();
+    await Chat.create({
+        members: [savedUser._id],
+        isSelfChat: true
+    });
     res.status(201).send({
         message:'User created successfully',
         success: true
