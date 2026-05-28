@@ -1,34 +1,52 @@
 const express = require('express');
 const router = express.Router();
+
 const OTP = require('../modules/otpModel');
 const sendEmail = require('../utils/sendEmail');
 const User = require('../modules/user');
 
 router.post('/send-otp', async (req, res) => {
+
     try {
+
         const { email } = req.body;
+
         if (!email) {
+
             return res.status(400).json({
                 success: false,
                 message: 'Email is required'
             });
+
         }
+
+        // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Delete previous OTP
         await OTP.deleteMany({ email });
+
+        // Save new OTP
         await OTP.create({
             email,
-            otp
+            otp,
+            createdAt: new Date()
         });
-            await sendEmail(
-                email,
-                'QuickChat Email Verification',
-                `
-                <div style="
-                background:#f4f7fb;
-                padding:40px 20px;
-                font-family:Arial,sans-serif;
-                ">
-                
+
+        // Send Email
+        const emailResponse = await sendEmail(
+
+            email,
+
+            'QuickChat Email Verification',
+
+            `
+            <div style="
+            background:#f4f7fb;
+            padding:40px 20px;
+            font-family:Arial,sans-serif;
+            ">
+
                 <div style="
                     max-width:500px;
                     margin:auto;
@@ -44,80 +62,108 @@ router.post('/send-otp', async (req, res) => {
                     text-align:center;
                     color:white;
                     ">
-                    <h1 style="margin:0;">QuickChat</h1>
-                    <p style="margin-top:8px;font-size:14px;">
-                        Secure Email Verification
-                    </p>
+
+                        <h1 style="margin:0;">QuickChat</h1>
+
+                        <p style="
+                        margin-top:8px;
+                        font-size:14px;
+                        ">
+                            Secure Email Verification
+                        </p>
+
                     </div>
-
-                    <div style="padding:35px 30px;color:#333;">
-
-                    <h2>Hello 👋</h2>
-
-                    <p style="line-height:1.7;">
-                        Use the OTP below to verify your email for your
-                        QuickChat account.
-                    </p>
 
                     <div style="
-                        margin:30px 0;
-                        text-align:center;
+                    padding:35px 30px;
+                    color:#333;
                     ">
-                        <span style="
-                        display:inline-block;
-                        background:#eef2ff;
-                        color:#4f46e5;
-                        padding:18px 40px;
-                        font-size:34px;
-                        font-weight:bold;
-                        border-radius:14px;
-                        letter-spacing:6px;
+
+                        <h2>Hello 👋</h2>
+
+                        <p style="line-height:1.7;">
+                            Use the OTP below to verify your
+                            QuickChat account.
+                        </p>
+
+                        <div style="
+                            margin:30px 0;
+                            text-align:center;
                         ">
-                        ${otp}
-                        </span>
-                    </div>
 
-                    <p style="
-                        font-size:14px;
-                        color:#666;
-                        line-height:1.6;
-                    ">
-                        This OTP will expire in 5 minutes.
-                        Do not share this code with anyone.
-                    </p>
+                            <span style="
+                            display:inline-block;
+                            background:#eef2ff;
+                            color:#4f46e5;
+                            padding:18px 40px;
+                            font-size:34px;
+                            font-weight:bold;
+                            border-radius:14px;
+                            letter-spacing:6px;
+                            ">
+                                ${otp}
+                            </span>
 
-                    <hr style="
-                        margin:30px 0;
-                        border:none;
-                        border-top:1px solid #eee;
-                    ">
+                        </div>
 
-                    <p style="
-                        text-align:center;
-                        font-size:13px;
-                        color:#888;
-                    ">
-                        © 2026 QuickChat. All rights reserved.
-                    </p>
+                        <p style="
+                            font-size:14px;
+                            color:#666;
+                            line-height:1.6;
+                        ">
+                            This OTP will expire in 5 minutes.
+                            Do not share this code with anyone.
+                        </p>
+
+                        <hr style="
+                            margin:30px 0;
+                            border:none;
+                            border-top:1px solid #eee;
+                        ">
+
+                        <p style="
+                            text-align:center;
+                            font-size:13px;
+                            color:#888;
+                        ">
+                            © 2026 QuickChat. All rights reserved.
+                        </p>
 
                     </div>
 
                 </div>
 
-                </div>
-                `
-            );
+            </div>
+            `
+        );
+
+        // Email Failed
+        if (!emailResponse.success) {
+
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to send OTP email'
+            });
+
+        }
+
+        // Success
         res.status(200).json({
             success: true,
             message: 'OTP sent successfully'
         });
+
     } catch (error) {
+
         console.log(error);
+
         res.status(500).json({
             success: false,
             message: 'Server error'
         });
+
     }
+
 });
 
 router.post('/verify-otp', async (req, res) => {
@@ -127,19 +173,43 @@ router.post('/verify-otp', async (req, res) => {
         const { email, otp } = req.body;
 
         if (!email || !otp) {
+
             return res.status(400).json({
                 success: false,
                 message: 'Email and OTP are required'
             });
+
         }
 
         const existingOTP = await OTP.findOne({ email, otp });
 
         if (!existingOTP) {
+
             return res.status(400).json({
                 success: false,
                 message: 'Invalid OTP'
             });
+
+        }
+
+        // OTP Expiry Check (5 min)
+        const currentTime = new Date().getTime();
+
+        const otpTime = new Date(existingOTP.createdAt).getTime();
+
+        const diff = currentTime - otpTime;
+
+        const fiveMinutes = 5 * 60 * 1000;
+
+        if (diff > fiveMinutes) {
+
+            await OTP.deleteMany({ email });
+
+            return res.status(400).json({
+                success: false,
+                message: 'OTP expired'
+            });
+
         }
 
         await OTP.deleteMany({ email });
@@ -157,6 +227,7 @@ router.post('/verify-otp', async (req, res) => {
             success: false,
             message: 'Server error'
         });
+
     }
 
 });

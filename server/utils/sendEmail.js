@@ -38,14 +38,22 @@ const sendEmail = async (to, subject, html) => {
 
         console.log("Email sent successfully");
 
-        console.log(data);
+        return {
+            success: true,
+            data
+            };
 
     } catch (error) {
 
         console.log(
-            "Email sending failed:",
-            error.response?.body || error.message
-        );
+   "Email sending failed:",
+   error.response?.body || error.message
+);
+
+return {
+   success: false,
+   error: error.response?.body || error.message
+};
 
     }
 
