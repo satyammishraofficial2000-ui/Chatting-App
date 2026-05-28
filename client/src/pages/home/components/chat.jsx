@@ -10,6 +10,8 @@ import store from "./../../../redux/store";
 import EmojiPicker from "emoji-picker-react";
 import { FaMicrophone } from "react-icons/fa";
 import { reactToMessage } from "../../../apiCalls/message";
+import { createYouItem, getYouItems, toggleYouTask, deleteYouItem} from "../../../apiCalls/you";
+
 
 
 
@@ -28,18 +30,24 @@ function ChatArea({ socket,setMobileChatOpen  }) {
 const isSelfChat = selectedChat?.isSelfChat;
 let selectedUser = null;
 if(isSelfChat){
-selectedUser = {
-  firstname: "You",
-  lastname: " ",
-  _id: user._id
-};
+    selectedUser = {
+        firstname: "You",
+        lastname: "",
+        _id: user._id
+    };
 } else {
-  const otherUserId = selectedChat.members.find(
-    member => (member._id ? member._id : member) !== user._id
-  );
-  selectedUser = allusers.find(
-    u => u._id === (otherUserId._id ? otherUserId._id : otherUserId)
-  );
+    const otherUserId = selectedChat?.members?.find(
+        member =>
+            String(member._id ? member._id : member)
+            !== String(user._id)
+    );
+    if(otherUserId){
+        selectedUser = allusers.find(
+            u =>
+                String(u._id)
+                === String(otherUserId._id ? otherUserId._id : otherUserId)
+        );
+    }
 }
   const  [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -63,6 +71,10 @@ selectedUser = {
   const [swipedMessageId, setSwipedMessageId] = useState(null);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessage, setForwardMessage] = useState(null);
+  const [youFilter, setYouFilter] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [completedTasks, setCompletedTasks] = useState([]);
+  const [youItems, setYouItems] = useState([]);
   
 
 const isChrome = /Chrome/.test(navigator.userAgent);
@@ -106,23 +118,76 @@ recognition.onerror = (event) => {
         scheduleDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
       }
 
-      const newMessage = {
-        chatId: selectedChat._id,
-        sender: user._id,
-        text: message,
-        image: image,
-        replyTo: replyMessage
-          ? {
-              text: replyMessage.text,
-              sender: replyMessage.sender
-            }
-          : null,
-        language: user.preferredLanguage || "en",
+let category = selectedCategory || "general";
 
-        isScheduled: scheduleDateTime ? true : false,
-        scheduledFor: scheduleDateTime,
-        isDelivered: scheduleDateTime ? false : true,
-      };
+let finalMessage = message;
+
+if(image){
+    category = "image";
+}
+
+if(!message && !image){
+    return;
+}
+console.log("SELECTED CATEGORY:", selectedCategory);
+console.log("FINAL CATEGORY:", category);
+if(selectedChat?.isSelfChat){
+
+    const lines = message
+        .split("\n")
+        .filter(line => line.trim() !== "");
+
+    let createdItems = [];
+
+    for(const line of lines){
+
+        const response = await createYouItem({
+            type: selectedCategory || "note",
+            text: line,
+            image: image || "",
+            replyTo: replyMessage
+              ? {
+                  text: replyMessage.text,
+                  sender: replyMessage.sender
+                }
+              : null,
+            reminderTime:
+                selectedCategory === "reminder"
+                    ? scheduleDateTime
+                    : null
+        });
+        if(response.success){
+            createdItems.push(response.data);
+        }
+    }
+    setYouItems(prev => [
+      ...prev,
+      ...createdItems
+  ]);
+    setMessage("");
+    setSelectedCategory("");
+    setReplyMessage(null);
+    return;
+}
+const newMessage = {
+    chatId: selectedChat._id,
+    sender: user._id,
+    //text: message,
+    text: finalMessage,
+    category,
+    image: image,
+    replyTo: replyMessage
+      ? {
+          text: replyMessage.text,
+          sender: replyMessage.sender
+        }
+      : null,
+    language: user.preferredLanguage || "en",
+    isScheduled: scheduleDateTime ? true : false,
+    scheduledFor: scheduleDateTime,
+    isDelivered: scheduleDateTime ? false : true,
+
+};
 
           const tempMessage = {
               ...newMessage,
@@ -150,6 +215,7 @@ recognition.onerror = (event) => {
        }
 
      if(response.success){
+      setSelectedCategory("");
       setScheduledDate("");
       setScheduledTime("");
       setShowScheduleModal(false);
@@ -251,9 +317,32 @@ const handleDeleteMessage = async (messageId, deleteType) => {
   }
 };
 
+const loadYouItems = async() => {
+
+    const response = await getYouItems();
+
+    if(response.success){
+
+        setYouItems(response.data);
+
+    }
+
+};
+
 function formatName(user) {
-  let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
-  let lname = user.lastname.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
+
+  if(!user){
+    return "You";
+  }
+
+  let fname =
+    user.firstname?.at(0)?.toUpperCase() +
+    user.firstname?.slice(1)?.toLowerCase();
+
+  let lname =
+    user.lastname?.at(0)?.toUpperCase() +
+    user.lastname?.slice(1)?.toLowerCase();
+
   return fname + " " + lname;
 }
 
@@ -267,6 +356,15 @@ function sendImage(e) {
   }
 }
 
+useEffect(() => {
+
+    if(selectedChat?.isSelfChat){
+
+        loadYouItems();
+
+    }
+
+}, [selectedChat]);
 
 
 
@@ -363,7 +461,9 @@ dispatch(setAllChats(updatedChats));
       return prevMsg.map(msg => {
 
         if(
-          msg.sender === user._id &&
+          selectedChat?.isSelfChat
+            ? true
+            : msg.sender === user._id &&
           String(msg.chatId) === String(data.chatId)
         ){
           return { ...msg, read: true };
@@ -448,6 +548,21 @@ useEffect(() => {
     return <div className="app-chat-area"></div>;
   }
 
+
+
+const filteredMessages = selectedChat?.isSelfChat
+
+  ? youItems.filter((item) => {
+
+      if(youFilter === "all") return true;
+
+      return item.type === youFilter;
+
+    })
+
+  : allMessages;
+
+
   // Add reaction to message
 const addReaction = async (messageId, emoji) => {
     const currentMessage = allMessages.find(
@@ -521,20 +636,121 @@ const addReaction = async (messageId, emoji) => {
               )
             }
           </div>
+        {selectedChat?.isSelfChat && (
 
+          <i
+            className="fa fa-filter you-top-filter-btn"
+            onClick={() => {
+              document.querySelector(".main-chat-area")
+                ?.scrollTo({
+                  top: 0,
+                  behavior: "instant"
+                });
+            }}
+          ></i>
+
+        )}
           <div>
-            {formatName(selectedUser)}
-          </div>
+          {selectedChat?.isSelfChat
+              ? "You"
+              : formatName(selectedUser)}
+        </div>
+
 
         </div>
+
      
 <div className="main-chat-area" id="main-chat-area"   onClick={() => {
               setShowActionPopup(false);
-              setReplyMessage(null);
             }}>
-  {allMessages.map((msg, index) => {
+   {selectedChat?.isSelfChat && (
+
+    <div className="you-chat-wrapper">
+      <div className="you-filters">
+
+        <button
+          className={youFilter === "all" ? "active-filter" : ""}
+          onClick={() => setYouFilter("all")}
+        >
+          All
+        </button>
+
+        <button
+          className={youFilter === "task" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "task" ? "all" : "task"
+            )
+          }
+        >
+          Tasks
+        </button>
+
+        <button
+          className={youFilter === "link" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "link" ? "all" : "link"
+            )
+          }
+        >
+          Links
+        </button>
+
+        <button
+          className={youFilter === "idea" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "idea" ? "all" : "idea"
+            )
+          }
+        >
+          Ideas
+        </button>
+
+        <button
+          className={youFilter === "note" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "note" ? "all" : "note"
+            )
+          }
+        >
+          Notes
+        </button>
+
+        <button
+          className={youFilter === "image" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "image" ? "all" : "image"
+            )
+          }
+        >
+          Images
+        </button>
+
+        <button
+          className={youFilter === "reminder" ? "active-filter" : ""}
+          onClick={() =>
+            setYouFilter(
+              youFilter === "reminder" ? "all" : "reminder"
+            )
+          }
+        >
+          Reminders
+        </button>
+
+      </div>
+    </div>
+  )}
+
+  {filteredMessages.map((msg, index) => {
     
-    const isCurrentUserSender = msg.sender === user._id;
+    const isCurrentUserSender =
+          selectedChat?.isSelfChat
+            ? true
+            : msg.sender === user._id;
 
     return (
       <div
@@ -661,14 +877,84 @@ const addReaction = async (messageId, emoji) => {
                   )}
 
                 <div>
-                  {
-                   msg.sender === user._id ||
-                    msg.language === user.preferredLanguage
-                      ? msg.text
-                      : msg.translatedText || msg.text
-                  }
-                </div>
 
+                  {msg.type === "task" && (
+
+                    <span
+                      className="task-checkbox"
+                      onClick={async (e) => {
+
+                          e.stopPropagation();
+
+                          const response = await toggleYouTask(msg._id);
+
+                          if(response.success){
+
+                              setYouItems(prev =>
+                                  prev.map(item => {
+
+                                      if(item._id === msg._id){
+
+                                          return response.data;
+
+                                      }
+
+                                      return item;
+
+                                  })
+                              );
+
+                          }
+
+                      }}
+                    >
+                      {msg.completed ? "☑" : "☐"}
+                    </span>
+
+                  )}
+
+                  <span
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      color:
+                        msg.completed
+                          ? "#222"
+                          : "inherit",
+
+                      opacity:
+                        msg.completed
+                          ? 0.7
+                          : 1
+                    }}
+                  >
+
+                    {
+                      msg.sender === user._id ||
+                      msg.language === user.preferredLanguage
+                        ? msg.text
+                        : msg.translatedText || msg.text
+                    }
+                    {msg.completed && (
+
+  <div
+    style={{
+      position: "absolute",
+      left: 0,
+      top: "50%",
+      width: "100%",
+      height: "2px",
+      background: "#000",
+      transform: "translateY(-50%)",
+      borderRadius: "10px"
+    }}
+  ></div>
+
+                          )}
+
+                  </span>
+
+                </div>
                 <div className="message-menu">
 
                   <i
@@ -698,20 +984,42 @@ const addReaction = async (messageId, emoji) => {
                   >
                     <div
                       className="message-dropdown-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteMessage(
-                              msg._id,
-                              isCurrentUserSender ? "everyone" : "me"
-                            );
-                            setOpenMenuId(null);
-                          }}
+                         onClick={async (e) => {
+
+    e.stopPropagation();
+
+    if(selectedChat?.isSelfChat){
+
+        const response = await deleteYouItem(msg._id);
+
+        if(response.success){
+
+            setYouItems(prev =>
+                prev.filter(item => item._id !== msg._id)
+            );
+
+        }
+
+    }else{
+
+        handleDeleteMessage(
+            msg._id,
+            isCurrentUserSender ? "everyone" : "me"
+        );
+
+    }
+
+    setOpenMenuId(null);
+
+                              }}
                     >
                       {
-                        isCurrentUserSender
-                          ? "Delete for everyone"
-                          : "Delete for me"
-                      }
+                    selectedChat?.isSelfChat
+                      ? "Delete"
+                      : isCurrentUserSender
+                        ? "Delete for everyone"
+                        : "Delete for me"
+                  }
                     </div>
 
                   </div>
@@ -766,6 +1074,34 @@ const addReaction = async (messageId, emoji) => {
       
       <div className="send-message-div">
 
+        {selectedChat?.isSelfChat && (
+
+          <div className="category-selector">
+
+            <button type="button" onClick={() => setSelectedCategory("idea")}>
+              💡
+            </button>
+
+            <button type="button" onClick={() => setSelectedCategory("task")}>
+              ✅
+            </button>
+
+            <button type="button" onClick={() => setSelectedCategory("link")}>
+              🔗
+            </button>
+
+            <button type="button" onClick={() => setSelectedCategory("note")}>
+              📝
+            </button>
+
+            <button type="button" onClick={() => setSelectedCategory("reminder")}>
+              ⏰
+            </button>
+
+          </div>
+
+        )}
+
          {
             showEmojiPicker && (
               <div className="emoji-picker-container">
@@ -773,7 +1109,32 @@ const addReaction = async (messageId, emoji) => {
               </div>
             )
           }
-        <input
+
+        {selectedCategory && (
+
+          <div className="selected-category-chip">
+
+            {selectedCategory === "idea" && "💡 Idea"}
+
+            {selectedCategory === "task" && "✅ Task"}
+
+            {selectedCategory === "link" && "🔗 Link"}
+
+            {selectedCategory === "note" && "📝 Note"}
+
+            {selectedCategory === "reminder" && "⏰ Reminder"}
+
+            <span
+              className="remove-category"
+              onClick={() => setSelectedCategory("")}
+            >
+              ✕
+            </span>
+
+          </div>
+
+        )}
+        <textarea
           type="text"
           className="send-message-input"
           placeholder="Type a message"
@@ -794,12 +1155,12 @@ const addReaction = async (messageId, emoji) => {
 
           onKeyDown={(e) => {
 
-              if(e.key === "Enter"){
-
+              if(e.key === "Enter" && !e.shiftKey){
+                  e.preventDefault();
                   sendMessage();
               }
           }}
-        />
+        ></textarea>
         <label htmlFor="file">
           <i className="fa fa-picture-o send-image-btn"></i>
           <input 
@@ -947,7 +1308,6 @@ const addReaction = async (messageId, emoji) => {
               setForwardMessage(selectedMessage);
               setShowForwardModal(true);
               setShowActionPopup(false);
-                setShowActionPopup(false);
               }}
             >
               <span>📤</span>
@@ -997,16 +1357,26 @@ const addReaction = async (messageId, emoji) => {
                                   member =>
                                     String(member._id ? member._id : member) !== String(user._id)
                                 );
-                                if(!otherMember) return null;
+                                if(!otherMember && !chat.isSelfChat) return null;
                                 return (
                               <div
                                 key={chat._id}
                                 className="forward-chat-item"
                                 onClick={async () => {
+                                if(chat.isSelfChat){
+                                  await createYouItem({
+                                    type: "note",
+                                    text: forwardMessage.text || "",
+                                    image: forwardMessage.image || ""
+                                  });
+                                  toast.success("Forwarded to You");
+                                  setShowForwardModal(false);
+                                  return;
+                                }
                                   const newMessage = {
                                     chatId: chat._id,
                                     sender: user._id,
-                                    text: forwardMessage.text,
+                                    text: forwardMessage.text || "",
                                     image: forwardMessage.image || "",
                                     language: user.preferredLanguage || "en",
                                   };
@@ -1024,9 +1394,11 @@ const addReaction = async (messageId, emoji) => {
                                   }
                                 }}
                               >
-                                    {otherMember.firstname
-                                      ? formatName(otherMember)
-                                      : "Unknown User"}
+                                    {
+                                chat.isSelfChat
+                                  ? "You"
+                                  : formatName(otherMember)
+                              }
                                   </div>
                                 );
                               })

@@ -6,25 +6,33 @@ const User = require('./../modules/user');
 const translate = require("google-translate-api-x");
 const CryptoJS = require("crypto-js");
 const SECRET_KEY = process.env.SECRET_KEY;
-const router = require('express').Router();
 
 
 // Route to send a new message
 route.post('/new-message', authMiddleware, async (req, res) => {
     try {
-
+        console.log(req.body);
         // Store the message in message collection
         const chat = await Chat.findById(req.body.chatId);
 
             const receiverId = chat.members.find(
-            member => member.toString() !== req.userId
+                member => member.toString() !== req.userId
             );
 
-            const receiver = await User.findById(receiverId);
+            let receiver = null;
+
+            if(receiverId){
+
+                receiver = await User.findById(receiverId);
+
+            }
 
             let translatedText = "";
 
-            if(receiver.preferredLanguage !== req.body.language){
+            if(
+                receiver &&
+                receiver.preferredLanguage !== req.body.language
+            ){
 
             const languageCodes = {
                 en: "English",
@@ -40,18 +48,23 @@ route.post('/new-message', authMiddleware, async (req, res) => {
             translatedText = result.text;
             }
 
-            const encryptedText = CryptoJS.AES.encrypt(
-                        req.body.text,
+                let encryptedTranslatedText = "";
+
+                if(translatedText){
+
+                    encryptedTranslatedText =
+                    CryptoJS.AES.encrypt(
+                        translatedText,
                         SECRET_KEY
                     ).toString();
 
-                    const encryptedTranslatedText = translatedText
-                        ? CryptoJS.AES.encrypt(
-                            translatedText,
-                            SECRET_KEY
-                        ).toString()
-                        : "";
+                }
 
+
+                        const encryptedText = CryptoJS.AES.encrypt(
+                                                req.body.text || "",
+                                                SECRET_KEY
+                                            ).toString();
                     const newMessage = new Message({
                         ...req.body,
                         text: encryptedText,
@@ -82,6 +95,7 @@ route.post('/new-message', authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
+        console.log("MESSAGE ERROR:", error);
         res.status(400).send({
             message: error.message,
             success: false
@@ -286,5 +300,6 @@ route.post('/react-message', async (req, res) => {
     }
 
 });
+
 
 module.exports = route;

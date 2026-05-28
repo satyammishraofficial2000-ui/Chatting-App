@@ -11,6 +11,7 @@ const messageRouter = require('./controllers/messageController');
 const startScheduledMessagesCron = require('./cron/scheduledMessages');
 const sendEmail = require('./utils/sendEmail');
 const otpRouter = require('./controllers/otpController');
+const youController = require('./controllers/youController');
 
 app.use(express.json({
      limit: '50mb'
@@ -28,6 +29,7 @@ app.use('/api/user', userRouter);
 app.use('/api/chat',chatRouter);
 app.use('/api/message', messageRouter);
 app.use('/api/otp', otpRouter);
+app.use('/api/you', youController);
 
 const onlineUsers =[];
 

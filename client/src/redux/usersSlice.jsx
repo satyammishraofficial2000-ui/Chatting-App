@@ -7,7 +7,7 @@ const usersSlice = createSlice({
     user: null,
     allusers:[],
     allChats:[],
-    selecteddChat: null
+    selectedChat: null
   },
   reducers: {
     setUser: (state, action) => { state.user = action.payload; },   // fixed name

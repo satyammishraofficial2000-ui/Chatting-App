@@ -1,48 +1,50 @@
-const nodemailer = require("nodemailer");
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-const transporter = nodemailer.createTransport({
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
-    host: "smtp-relay.brevo.com",
+const apiKey = defaultClient.authentications['api-key'];
 
-    port: 587,
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
-    secure: false,
-
-    auth: {
-
-        user: process.env.BREVO_EMAIL,
-
-        pass: process.env.BREVO_PASS
-
-    }
-
-});
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 const sendEmail = async (to, subject, html) => {
 
     try {
 
-        const info = await transporter.sendMail({
+        const data = await apiInstance.sendTransacEmail({
 
-            from: '"QuickChat" <mishrashtyam@gmail.com>',
+            sender: {
 
-            to,
+                email: 'mishrashtyam@gmail.com',
+
+                name: 'QuickChat'
+
+            },
+
+            to: [
+
+                {
+                    email: to
+                }
+
+            ],
 
             subject,
 
-            html
+            htmlContent: html
 
         });
 
         console.log("Email sent successfully");
 
-        console.log(info);
+        console.log(data);
 
     } catch (error) {
 
         console.log(
             "Email sending failed:",
-            error
+            error.response?.body || error.message
         );
 
     }

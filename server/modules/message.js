@@ -15,6 +15,7 @@ const messageScema = new mongoose.Schema({
     text: {
         type: String
     },
+    
     sender: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users"

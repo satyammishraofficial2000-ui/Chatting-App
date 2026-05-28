@@ -9,13 +9,26 @@ export const getAllChats = async (userId) => {
     }
 }
 
-export const createNewChat = async ( members ) => {
+export const createNewChat = async (data) => {
+
     try {
-        const response = await axiosInstance.post(url + '/api/chat/create-new-chat', { members });
+
+        const response = await axiosInstance.post(
+
+            url + '/api/chat/create-new-chat',
+
+            data
+
+        );
+
         return response.data;
-    }catch (error) {
-        return error;
+
+    } catch (error) {
+
+        return error.response.data;
+
     }
+
 }
 
 export const clearUnreadMessages = async (chatId) => {
