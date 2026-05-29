@@ -12,6 +12,8 @@ const startScheduledMessagesCron = require('./cron/scheduledMessages');
 const sendEmail = require('./utils/sendEmail');
 const otpRouter = require('./controllers/otpController');
 const youController = require('./controllers/youController');
+const reminderRouter = require('./controllers/reminderController');
+const startReminderChecker = require('./utils/reminderChecker');
 
 app.use(express.json({
      limit: '50mb'
@@ -30,6 +32,7 @@ app.use('/api/chat',chatRouter);
 app.use('/api/message', messageRouter);
 app.use('/api/otp', otpRouter);
 app.use('/api/you', youController);
+app.use('/api/reminder', reminderRouter);
 
 const onlineUsers =[];
 
@@ -101,6 +104,7 @@ io.on('connection', (socket) => {
 });  
 
 startScheduledMessagesCron(io);
+startReminderChecker(io);
 
 
 module.exports = server;

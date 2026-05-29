@@ -11,6 +11,7 @@ import EmojiPicker from "emoji-picker-react";
 import { FaMicrophone } from "react-icons/fa";
 import { reactToMessage } from "../../../apiCalls/message";
 import { createYouItem, getYouItems, toggleYouTask, deleteYouItem} from "../../../apiCalls/you";
+import { createReminder } from "../../../apiCalls/reminder";
 
 
 
@@ -76,6 +77,7 @@ if(isSelfChat){
   const [selectedCategory, setSelectedCategory] = useState("");
   const [completedTasks, setCompletedTasks] = useState([]);
   const [youItems, setYouItems] = useState([]);
+  const [reminderMessages, setReminderMessages] = useState([]);
   
 
 const isChrome = /Chrome/.test(navigator.userAgent);
@@ -379,6 +381,15 @@ useEffect(() => {
 }, [selectedChat]);
 
 
+useEffect(() => {
+
+  if (Notification.permission !== "granted") {
+
+    Notification.requestPermission();
+
+  }
+
+}, []);
 
 useEffect(() => {
 
@@ -533,6 +544,19 @@ socket.on('message-reaction-updated', (data) => {
   });
 
 });
+socket.on('reminder-notification', (data) => {
+
+  console.log("REMINDER RECEIVED", data);
+
+  new Notification(
+    'QuickChat Reminder',
+    {
+      body: data.text,
+      icon: '/pwa-192.png'
+    }
+  );
+
+});
 
 return () => {
   socket.off("receive-message");
@@ -540,6 +564,7 @@ return () => {
   socket.off("message-count-cleared");
   socket.off("started-typing");
   socket.off("message-deleted");
+  socket.off("reminder-notification");
 };
 
 }, [selectedChat]);
@@ -947,6 +972,7 @@ const addReaction = async (messageId, emoji) => {
                         ? msg.text
                         : msg.translatedText || msg.text
                     }
+
                     {msg.completed && (
 
   <div
@@ -1052,6 +1078,11 @@ const addReaction = async (messageId, emoji) => {
                 </div>
             <div className="message-timestamp" style={isCurrentUserSender ? { float: "right" } : { float: "left" }}>
               {formateTime(msg.deliveredAt || msg.createdAt)}
+              {reminderMessages.includes(msg._id) && (
+                  <span style={{ marginLeft: "5px" }}>
+                    ⏰
+                  </span>
+                )}
 
               {isCurrentUserSender && msg.read &&  
                 <i
@@ -1223,7 +1254,13 @@ const addReaction = async (messageId, emoji) => {
         <div className="schedule-modal-overlay">
           <div className="schedule-modal">
 
-            <h3>Schedule Message</h3>
+            <h3>
+                {
+                  selectedCategory === "reminder"
+                    ? "Set Reminder"
+                    : "Schedule Message"
+                }
+              </h3>
 
             <input
               type="date"
@@ -1243,12 +1280,29 @@ const addReaction = async (messageId, emoji) => {
                 Cancel
               </button>
 
-              <button
-                onClick={() => {
-                  console.log("Scheduled:", scheduledDate, scheduledTime);
-                  setShowScheduleModal(false);
-                }}
-              >
+             <button
+                    onClick={async () => {
+                      if(selectedMessage){
+                        const response =
+                          await createReminder({
+                            userId: user._id,
+                            messageId: selectedMessage._id,
+                            text: selectedMessage.text,
+                            remindAt: new Date(
+                              `${scheduledDate}T${scheduledTime}`
+                            )
+                          });
+                        if(response.success){
+                          setReminderMessages(prev => [
+                            ...prev,
+                            selectedMessage._id
+                          ]);
+                          toast.success("Reminder Set");
+                        }
+                      }
+                      setShowScheduleModal(false);
+                    }}
+                  >
                 Schedule
               </button>
 
@@ -1295,16 +1349,29 @@ const addReaction = async (messageId, emoji) => {
               }}
             >
 
-            <div
-              className="popup-item"
+              <div
+                className="popup-item"
                 onClick={() => {
                   setReplyMessage(selectedMessage);
                   setShowActionPopup(false);
                 }}
-            >
-              <span>↩</span>
-              <span>Reply</span>
-            </div>
+              >
+                <span>↩</span>
+                <span>Reply</span>
+              </div>
+
+<div
+  className="popup-item"
+  onClick={() => {
+    setSelectedMessage(selectedMessage);
+    setShowScheduleModal(true);
+    setShowActionPopup(false);
+
+  }}
+>
+  <span>⏰</span>
+  <span>Reminder</span>
+</div>
 
             <div
               className="popup-item"
@@ -1313,6 +1380,7 @@ const addReaction = async (messageId, emoji) => {
                 toast.success("Message copied");
                 setShowActionPopup(false);
               }}
+              
             >
               <span>📋</span>
               <span>Copy</span>
