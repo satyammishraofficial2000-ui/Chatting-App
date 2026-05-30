@@ -14,7 +14,7 @@ router.post('/create', async (req, res) => {
             text,
             remindAt
         } = req.body;
-
+        console.log(req.body);
         const reminder = await Reminder.create({
 
             userId,

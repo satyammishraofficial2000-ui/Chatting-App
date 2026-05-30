@@ -25,7 +25,9 @@ function UserList({ searchKey, socket, onlineUsers, setMobileChatOpen}) {
     let response = null;
     try{
       dispatch(showLoader());
-      response = await createNewChat([currentUser._id, searchedUserId]);
+      response = await createNewChat({
+        members: [currentUser._id, searchedUserId]
+      });
       dispatch(hideLoader());
 
       if(response.success){
